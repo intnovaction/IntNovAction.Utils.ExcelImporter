@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2016
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntNovAction.Utils.ExcelImporter", "IntNovAction.Utils.ExcelImporter\IntNovAction.Utils.ExcelImporter.csproj", "{D30CCD4D-145D-4F0F-A051-BE75B4AB24F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D30CCD4D-145D-4F0F-A051-BE75B4AB24F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D30CCD4D-145D-4F0F-A051-BE75B4AB24F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D30CCD4D-145D-4F0F-A051-BE75B4AB24F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D30CCD4D-145D-4F0F-A051-BE75B4AB24F6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {44333835-E6DC-4156-A0E8-EE65B9BE65BF}
+	EndGlobalSection
+EndGlobal
