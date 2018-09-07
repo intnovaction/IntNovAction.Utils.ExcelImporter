@@ -1,29 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <ApplicationIcon />
-    <OutputType>Library</OutputType>
-    <StartupObject />
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.4.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
+    <None Remove="SampleExcels\SampleExcel.xlsx" />
+    <None Remove="SampleExcels\~%24SampleExcel.xlsx" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="SampleExcels\" />
+    <EmbeddedResource Include="SampleExcels\SampleExcel.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="5.4.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\IntNovAction.Utils.ExcelImporter\IntNovAction.Utils.ExcelImporter.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="SampleExcels\SampleExcel.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

@@ -8,4 +8,8 @@
     <Folder Include="Builder\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.93.1" />
+  </ItemGroup>
+
 </Project>
