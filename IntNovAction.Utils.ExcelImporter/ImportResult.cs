@@ -13,7 +13,7 @@ namespace IntNovAction.Utils.Importer
             this.Errors = new List<ImportErrorInfo>();
         }
 
-        public IEnumerable<TImportInto> ImportedItems { get; set; }
+        public List<TImportInto> ImportedItems { get; set; }
 
         public ImportErrorResult Result
         {

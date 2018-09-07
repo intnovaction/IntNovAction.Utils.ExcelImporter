@@ -6,10 +6,13 @@
         public int Column { get; set; }
 
         public ImportErrorType ErrorType { get; set; }
+        public string ColumnName { get; internal set; }
     }
 
     public enum ImportErrorType
     {
-        SheetEmpty = 1
+        SheetEmpty = 1,
+        ColumnNotFound = 2,
+        InvalidValue = 3
     }
 }

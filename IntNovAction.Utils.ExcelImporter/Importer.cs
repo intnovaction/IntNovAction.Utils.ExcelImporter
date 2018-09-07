@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using ClosedXML.Excel;
 
 namespace IntNovAction.Utils.Importer
@@ -60,21 +63,54 @@ namespace IntNovAction.Utils.Importer
             AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
 
 
-            for (int i = 1; i < numdFilas; i++)
+            for (int cellRow = 2; cellRow <= numdFilas; cellRow++)
             {
                 var imported = new TImportInto();
 
-                foreach (var colImportInfo in this._fieldsInfo)
+                foreach (var colImportInfo in this._fieldsInfo.Where(fInfo => fInfo.ColumnNumber != 0))
                 {
-                    var row = sheet.Row(i);
+
+                    var property = colImportInfo.MemberExpr.Member as PropertyInfo;
+
+                    if (property != null)
+                    {
+                        var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
+
+                        var propertyTypeName = property.PropertyType.Name;
+
+                        if (propertyTypeName == typeof(int).Name)
+                        {
+                            if (cell.TryGetValue(out int valor))
+                            {
+                                property.SetValue(imported, valor);
+                            }
+                            else
+                            {
+                                results.Errors.Add(new ImportErrorInfo()
+                                {
+                                    Column = colImportInfo.ColumnNumber,
+                                    Row = cellRow,
+                                    ErrorType = ImportErrorType.InvalidValue
+                                });
+                            }
+                        }
+
+        
+
+                        //    property.SetValue(imported, value, null);
+                    }
+
+                    results.ImportedItems.Add(imported);
+                    
 
                 }
 
             }
 
-
             return results;
         }
+
+
 
 
         private static void AnalyzeHeaders(IXLWorksheet sheet,
@@ -84,7 +120,7 @@ namespace IntNovAction.Utils.Importer
             var firstRow = sheet.Row(1);
             foreach (var fieldInfo in fieldsInfo)
             {
-                var column = 0;
+                var column = 1;
                 var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
                 while (column <= lastColumn)
                 {
@@ -98,11 +134,12 @@ namespace IntNovAction.Utils.Importer
                     column++;
                 }
 
-                if (column > lastColumn)
+                if (fieldInfo.ColumnNumber == 0)
                 {
                     errors.Add(new ImportErrorInfo()
                     {
-
+                        ErrorType = ImportErrorType.ColumnNotFound,
+                        ColumnName = fieldInfo.ColumnName
                     });
                 }
             }
@@ -113,11 +150,10 @@ namespace IntNovAction.Utils.Importer
         /// </summary>
         /// <param name="memberAccessor"></param>
         /// <param name="columnName"></param>
-        public Importer<TImportInto> For(Func<TImportInto, object> memberAccessor, string columnName)
+        public Importer<TImportInto> For(Expression<Func<TImportInto, object>> memberAccessor, string columnName)
         {
-            var fInfo = new FieldImportInfo<TImportInto>()
+            var fInfo = new FieldImportInfo<TImportInto>(memberAccessor)
             {
-                Accessor = memberAccessor,
                 ColumnName = columnName
             };
 
