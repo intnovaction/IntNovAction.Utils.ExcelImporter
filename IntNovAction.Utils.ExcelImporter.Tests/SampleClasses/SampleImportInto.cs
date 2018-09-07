@@ -8,6 +8,8 @@ namespace IntNovAction.Utils.Importer.Tests.SampleClasses
     {
         public int IntColumn { get; set; }
 
+        public int? NullableIntColumn { get; set; }
+
         public string StringColumn { get; set; } 
 
         public string DateColumn { get; set; }

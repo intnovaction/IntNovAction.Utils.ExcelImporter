@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using ClosedXML.Excel;
 
 namespace IntNovAction.Utils.Importer
 {
@@ -76,32 +76,28 @@ namespace IntNovAction.Utils.Importer
                     {
                         var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
 
-                        var propertyTypeName = property.PropertyType.Name;
+                        string propertyTypeName = GetProperPropertyTypeName(property.PropertyType);
 
-                        if (propertyTypeName == typeof(int).Name)
+                        if (propertyTypeName == typeof(int).FullName)
                         {
-                            if (cell.TryGetValue(out int valor))
-                            {
-                                property.SetValue(imported, valor);
-                            }
-                            else
-                            {
-                                results.Errors.Add(new ImportErrorInfo()
-                                {
-                                    Column = colImportInfo.ColumnNumber,
-                                    Row = cellRow,
-                                    ErrorType = ImportErrorType.InvalidValue
-                                });
-                            }
+                            SetIntegerValue(results, imported, property, cell);
+                        }
+                        else if (propertyTypeName == typeof(int?).FullName)
+                        {
+                            SetNullableIntegerValue(results, imported, property, cell);
+                        }
+                        else
+                        {
+                            throw new PropertyTypeNotSupportedException();
                         }
 
-        
+
 
                         //    property.SetValue(imported, value, null);
                     }
 
                     results.ImportedItems.Add(imported);
-                    
+
 
                 }
 
@@ -110,8 +106,51 @@ namespace IntNovAction.Utils.Importer
             return results;
         }
 
+        internal static string GetProperPropertyTypeName(Type propertyType)
+        {
+            return propertyType.FullName;
+        }
 
+        private static void SetIntegerValue(ImportResult<TImportInto> results, TImportInto objectToFill, PropertyInfo property, IXLCell cell)
+        {
+            if (cell.TryGetValue(out int valor))
+            {
+                property.SetValue(objectToFill, valor);
+            }
+            else
+            {
+                AddError(results, cell);
+            }
+        }
 
+        private static void SetNullableIntegerValue(ImportResult<TImportInto> results, TImportInto objectToFill, PropertyInfo property, IXLCell cell)
+        {
+            if (String.IsNullOrWhiteSpace(cell.GetString()))
+            {
+                property.SetValue(objectToFill, null);
+            }
+            else
+            {
+                if (cell.TryGetValue(out int valor))
+                {
+                    property.SetValue(objectToFill, valor);
+                }
+                else
+                {
+                    AddError(results, cell);
+                }
+            }
+        }
+
+        private static void AddError(ImportResult<TImportInto> results, IXLCell cell)
+        {
+            results.Errors.Add(new ImportErrorInfo()
+            {
+                Column = cell.Address.ColumnNumber,
+                Row = cell.Address.RowNumber,
+                ErrorType = ImportErrorType.InvalidValue
+            });
+        }
 
         private static void AnalyzeHeaders(IXLWorksheet sheet,
             List<FieldImportInfo<TImportInto>> fieldsInfo,
@@ -161,5 +200,7 @@ namespace IntNovAction.Utils.Importer
 
             return this;
         }
+
+
     }
 }

@@ -33,6 +33,31 @@ namespace IntNovAction.Utils.Importer.Tests
             }
         }
 
+        [TestMethod]
+        public void Import_NullableInt_Column_From_Name()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .FromExcel(stream)
+                    .For(p => p.NullableIntColumn, "Nullable Int Column")
+                    .Import();
+
+                lista.Result.Should().Be(ImportErrorResult.Ok);
+
+                lista.Errors.Should().NotBeNull();
+                lista.Errors.Should().BeEmpty();
+
+                lista.ImportedItems.Should().NotBeNull();
+                lista.ImportedItems.Count().Should().Be(5);
+
+                lista.ImportedItems[0].NullableIntColumn.Should().Be(1);
+                lista.ImportedItems[1].NullableIntColumn.Should().BeNull();
+            }
+        }
+
         public Stream OpenExcel()
         {
             var stream = Assembly.GetExecutingAssembly()
