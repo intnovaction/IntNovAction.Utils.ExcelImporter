@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using IntNovAction.Utils.ExcelImporter.CellProcessors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +21,7 @@ namespace IntNovAction.Utils.Importer
         private readonly int _excelSheet = 1;
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
 
+        private int _initialRowForData = 2;
 
         public Importer()
         {
@@ -63,42 +65,22 @@ namespace IntNovAction.Utils.Importer
             AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
 
 
-            for (int cellRow = 2; cellRow <= numdFilas; cellRow++)
+            for (int cellRow = _initialRowForData; cellRow <= numdFilas; cellRow++)
             {
                 var imported = new TImportInto();
 
                 foreach (var colImportInfo in this._fieldsInfo.Where(fInfo => fInfo.ColumnNumber != 0))
                 {
-
                     var property = colImportInfo.MemberExpr.Member as PropertyInfo;
 
                     if (property != null)
                     {
                         var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
-
-                        string propertyTypeName = GetProperPropertyTypeName(property.PropertyType);
-
-                        if (propertyTypeName == typeof(int).FullName)
-                        {
-                            SetIntegerValue(results, imported, property, cell);
-                        }
-                        else if (propertyTypeName == typeof(int?).FullName)
-                        {
-                            SetNullableIntegerValue(results, imported, property, cell);
-                        }
-                        else
-                        {
-                            throw new PropertyTypeNotSupportedException();
-                        }
-
-
-
-                        //    property.SetValue(imported, value, null);
+                        var processor = GetProperPropertyProcessor(property.PropertyType);
+                        processor.SetValue(results, imported, property, cell);
                     }
 
                     results.ImportedItems.Add(imported);
-
-
                 }
 
             }
@@ -106,51 +88,22 @@ namespace IntNovAction.Utils.Importer
             return results;
         }
 
-        internal static string GetProperPropertyTypeName(Type propertyType)
+        internal CellProcessorBase<TImportInto> GetProperPropertyProcessor(Type propertyType)
         {
-            return propertyType.FullName;
+            if (propertyType.FullName == typeof(int).FullName)
+            {
+                return new IntegerCellProcessor<TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(int?).FullName)
+            {
+                return new NullableIntegerCellProcessor<TImportInto>();
+            }
+
+            throw new NotImplementedException($"The processor for {propertyType.FullName} is not implemented");
         }
 
-        private static void SetIntegerValue(ImportResult<TImportInto> results, TImportInto objectToFill, PropertyInfo property, IXLCell cell)
-        {
-            if (cell.TryGetValue(out int valor))
-            {
-                property.SetValue(objectToFill, valor);
-            }
-            else
-            {
-                AddError(results, cell);
-            }
-        }
 
-        private static void SetNullableIntegerValue(ImportResult<TImportInto> results, TImportInto objectToFill, PropertyInfo property, IXLCell cell)
-        {
-            if (String.IsNullOrWhiteSpace(cell.GetString()))
-            {
-                property.SetValue(objectToFill, null);
-            }
-            else
-            {
-                if (cell.TryGetValue(out int valor))
-                {
-                    property.SetValue(objectToFill, valor);
-                }
-                else
-                {
-                    AddError(results, cell);
-                }
-            }
-        }
 
-        private static void AddError(ImportResult<TImportInto> results, IXLCell cell)
-        {
-            results.Errors.Add(new ImportErrorInfo()
-            {
-                Column = cell.Address.ColumnNumber,
-                Row = cell.Address.RowNumber,
-                ErrorType = ImportErrorType.InvalidValue
-            });
-        }
 
         private static void AnalyzeHeaders(IXLWorksheet sheet,
             List<FieldImportInfo<TImportInto>> fieldsInfo,
