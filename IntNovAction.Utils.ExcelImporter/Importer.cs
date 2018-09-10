@@ -25,6 +25,8 @@ namespace IntNovAction.Utils.Importer
         private int _excelSheet = 1;
         private string _excelSheetName = null;
 
+        private readonly BooleanOptions _boolOptions;
+
         private ErrorStrategy _errorStrategy = ErrorStrategy.DoNotAddElement;
 
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
@@ -34,6 +36,7 @@ namespace IntNovAction.Utils.Importer
         public Importer()
         {
             this._fieldsInfo = new List<FieldImportInfo<TImportInto>>();
+            this._boolOptions = new BooleanOptions();
         }
 
         /// <summary>

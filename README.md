@@ -24,11 +24,12 @@ class SampleImportInto
 // Read the excel file 
 using (var stream = OpenExcel())
 {
-	// Create the typed importer
-	var importer = new Importer<SampleImportInto>();
+    // Create the typed importer
+    var importer = new Importer<SampleImportInto>();
 
-	// Configure and import
-    var importedObjects = importer
+    // Configure and import
+    var importResults = importer
+        .SetErrorStrategy(ErrorStrategy.AddElement)
         .FromExcel(stream, "Data With Errors")
         .For(p => p.IntColumn, "Int Column")
         .For(p => p.FloatColumn, "Float Column")
@@ -40,6 +41,12 @@ using (var stream = OpenExcel())
         .For(p => p.DateColumn, "Date Column")
         .For(p => p.NullableDateColumn, "Nullable Date Column")
         .Import();
+    
+    // Read the imported objects...
+    var numImportedItems = importResults.ImportedItems.Count();
+
+    // Check the errors...
+	var numImportedObjects = importResults.Errors.Count();
 }
 
 ```

@@ -25,6 +25,8 @@ namespace IntNovAction.Utils.Importer.Tests.SampleClasses
         public DateTime? NullableDateColumn { get; set; }
 
 
-        public string BoolColumn { get; set; }
+        public bool BooleanColumn { get; set; }
+
+        public bool? NullableBooleanColumn { get; set; }
     }
 }
