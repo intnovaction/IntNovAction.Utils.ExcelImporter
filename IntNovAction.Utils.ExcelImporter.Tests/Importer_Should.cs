@@ -29,7 +29,8 @@ namespace IntNovAction.Utils.Importer.Tests
                     .For(p => p.StringColumn, "String Column")
                     .For(p => p.DateColumn, "Date Column")
                     .For(p => p.NullableDateColumn, "Nullable Date Column")
-                    //.For(p => p.BoolColumn, "pp")
+                    .For(p => p.BooleanColumn, "Boolean Column")
+                    .For(p => p.NullableBooleanColumn, "Nullable Boolean Column")
                     .Import();
 
                 lista.Result.Should().Be(ImportErrorResult.Ok);
@@ -60,7 +61,8 @@ namespace IntNovAction.Utils.Importer.Tests
                     .For(p => p.StringColumn, "String Column")
                     .For(p => p.DateColumn, "Date Column")
                     .For(p => p.NullableDateColumn, "Nullable Date Column")
-                    //.For(p => p.BoolColumn, "pp")
+                    .For(p => p.BooleanColumn, "Boolean Column")
+                    .For(p => p.NullableBooleanColumn, "Nullable Boolean Column")
                     .Import();
 
                 lista.Result.Should().Be(ImportErrorResult.PartialOk);
@@ -91,7 +93,8 @@ namespace IntNovAction.Utils.Importer.Tests
                     .For(p => p.StringColumn, "String Column")
                     .For(p => p.DateColumn, "Date Column")
                     .For(p => p.NullableDateColumn, "Nullable Date Column")
-                    //.For(p => p.BoolColumn, "pp")
+                    .For(p => p.BooleanColumn, "Boolean Column")
+                    .For(p => p.NullableBooleanColumn, "Nullable Boolean Column")
                     .Import();
 
                 lista.Result.Should().Be(ImportErrorResult.PartialOk);

@@ -39,6 +39,25 @@ namespace IntNovAction.Utils.Importer
             this._boolOptions = new BooleanOptions();
         }
 
+
+        public Importer<TImportInto> SetBooleanOptions(IEnumerable<string> trueStrings = null, IEnumerable<string> falseStrings = null)
+        {
+
+            if (trueStrings != null)
+            {
+                this._boolOptions.TrueStrings.Clear();
+                this._boolOptions.TrueStrings.AddRange(trueStrings.ToList());
+            }
+
+            if (falseStrings != null)
+            {
+                this._boolOptions.FalseStrings.Clear();
+                this._boolOptions.FalseStrings.AddRange(falseStrings.ToList());
+            }
+
+            return this;
+        }
+
         /// <summary>
         /// Sets the excel file the importer will use
         /// </summary>
@@ -180,6 +199,14 @@ namespace IntNovAction.Utils.Importer
             else if (propertyType.FullName == typeof(string).FullName)
             {
                 return new StringCellProcessor<TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(Boolean).FullName)
+            {
+                return new BooleanCellProcessor<TImportInto>(false, this._boolOptions);
+            }
+            else if (propertyType.FullName == typeof(Boolean?).FullName)
+            {
+                return new BooleanCellProcessor<TImportInto>(true, this._boolOptions);
             }
 
             throw new NotImplementedException($"The processor for {propertyType.FullName} is not implemented");

@@ -41,6 +41,30 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 
 
         [TestMethod]
+        public void Process_Boolean_Alternate_Strings()
+        {
+            var options = new BooleanOptions();
+            options.TrueStrings.Clear();
+            options.TrueStrings.Add("sep");
+
+            options.FalseStrings.Clear();
+            options.FalseStrings.Add("nope");
+
+            var altProcessor = new BooleanCellProcessor<SampleImportInto>(false, options);
+
+            Cell.Value = "sep";
+            var cellProcessResult = altProcessor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            ObjectToBeFilled.BooleanColumn.Should().Be(true);
+            cellProcessResult.Should().BeTrue();
+
+            Cell.Value = "nope";
+            cellProcessResult = altProcessor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            ObjectToBeFilled.BooleanColumn.Should().Be(false);
+            cellProcessResult.Should().BeTrue();
+
+        }
+
+        [TestMethod]
         public void Process_Boolean_True_Value()
         {
 

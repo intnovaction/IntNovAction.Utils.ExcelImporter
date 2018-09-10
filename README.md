@@ -19,6 +19,8 @@ class SampleImportInto
     public string StringColumn { get; set; } 
     public DateTime DateColumn { get; set; }
     public DateTime? NullableDateColumn { get; set; }
+    public bool BooleanColumn { get; set; }
+    public bool? NullableBooleanColumn { get; set; }
 }
 
 // Read the excel file 
@@ -40,6 +42,8 @@ using (var stream = OpenExcel())
         .For(p => p.StringColumn, "String Column")
         .For(p => p.DateColumn, "Date Column")
         .For(p => p.NullableDateColumn, "Nullable Date Column")
+        .For(p => p.BooleanColumn, "Boolean Column")
+        .For(p => p.NullableBooleanColumn, "Nullable Boolean Column")
         .Import();
     
     // Read the imported objects...

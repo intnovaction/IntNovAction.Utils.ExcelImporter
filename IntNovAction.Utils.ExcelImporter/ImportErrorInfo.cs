@@ -7,6 +7,7 @@
 
         public ImportErrorType ErrorType { get; set; }
         public string ColumnName { get; internal set; }
+        public string CellValue { get; internal set; }
     }
 
     public enum ImportErrorType

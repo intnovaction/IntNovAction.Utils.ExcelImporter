@@ -40,15 +40,15 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
 
             }
 
-            var messageAsString = cell.GetString();
+            var cellContent = cell.GetString();
 
-            if (this._options.TrueStrings.Any(p => p.Equals(messageAsString, StringComparison.CurrentCultureIgnoreCase)))
+            if (this._options.TrueStrings.Any(p => p.Equals(cellContent, StringComparison.CurrentCultureIgnoreCase)))
             {
                 property.SetValue(objectToFill, true);
                 return true;
             }
 
-            if (this._options.FalseStrings.Any(p => p.Equals(messageAsString, StringComparison.CurrentCultureIgnoreCase)))
+            if (this._options.FalseStrings.Any(p => p.Equals(cellContent, StringComparison.CurrentCultureIgnoreCase)))
             {
                 property.SetValue(objectToFill, false);
                 return true;

@@ -20,6 +20,8 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             {
                 Column = cell.Address.ColumnNumber,
                 Row = cell.Address.RowNumber,
+                ColumnName = cell.Address.ColumnLetter,
+                CellValue = cell.GetString(),
                 ErrorType = ImportErrorType.InvalidValue
             });
         }
