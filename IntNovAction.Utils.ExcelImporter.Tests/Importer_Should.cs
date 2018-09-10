@@ -12,15 +12,23 @@ namespace IntNovAction.Utils.Importer.Tests
     public class Importer_Should
     {
         [TestMethod]
-        public void Import_Int_Column_From_Name()
+        public void Import_FromExcel()
         {
             var importer = new Importer<SampleImportInto>();
 
             using (var stream = OpenExcel())
             {
                 var lista = importer
-                    .FromExcel(stream)
+                    .FromExcel(stream)                    
                     .For(p => p.IntColumn, "Int Column")
+                    .For(p => p.FloatColumn, "Float Column")
+                    .For(p => p.DecimalColumn, "Decimal Column")
+                    .For(p => p.NullableIntColumn, "Nullable Int Column")
+                    .For(p => p.NullableFloatColumn, "Nullable Float Column")
+                    .For(p => p.NullableDecimalColumn, "Nullable Decimal Column")
+                    .For(p => p.StringColumn, "String Column")
+                    .For(p => p.DateColumn, "Date Column")
+                    .For(p => p.NullableDateColumn, "Nullable Date Column")
                     .Import();
 
                 lista.Result.Should().Be(ImportErrorResult.Ok);

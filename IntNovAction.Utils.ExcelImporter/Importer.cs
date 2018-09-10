@@ -79,10 +79,9 @@ namespace IntNovAction.Utils.Importer
                         var processor = GetProperPropertyProcessor(property.PropertyType);
                         processor.SetValue(results, imported, property, cell);
                     }
-
-                    results.ImportedItems.Add(imported);
                 }
 
+                results.ImportedItems.Add(imported);
             }
 
             return results;
@@ -92,11 +91,39 @@ namespace IntNovAction.Utils.Importer
         {
             if (propertyType.FullName == typeof(int).FullName)
             {
-                return new IntegerCellProcessor<TImportInto>();
+                return new NumberCellProcessor<int, TImportInto>();
             }
             else if (propertyType.FullName == typeof(int?).FullName)
             {
-                return new NullableIntegerCellProcessor<TImportInto>();
+                return new NumberNullableCellProcessor<int, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(decimal).FullName)
+            {
+                return new NumberCellProcessor<decimal, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(decimal?).FullName)
+            {
+                return new NumberNullableCellProcessor<decimal, TImportInto>();
+            }
+            else if(propertyType.FullName == typeof(float).FullName)
+            {
+                return new NumberCellProcessor<float, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(float?).FullName)
+            {
+                return new NumberNullableCellProcessor<float, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(DateTime).FullName)
+            {
+                return new DateCellProcessor<TImportInto>(false);
+            }
+            else if (propertyType.FullName == typeof(DateTime?).FullName)
+            {
+                return new DateCellProcessor<TImportInto>(true);
+            }
+            else if (propertyType.FullName == typeof(string).FullName)
+            {
+                return new StringCellProcessor<TImportInto>();
             }
 
             throw new NotImplementedException($"The processor for {propertyType.FullName} is not implemented");
