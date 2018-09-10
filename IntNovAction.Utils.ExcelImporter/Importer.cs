@@ -16,16 +16,24 @@ namespace IntNovAction.Utils.Importer
     public class Importer<TImportInto>
         where TImportInto : class, new()
     {
+
         private Stream _excelStream;
 
-        private readonly int _excelSheet = 1;
+        /// <summary>
+        /// El numero de hoja dentro del workbool
+        /// </summary>
+        private int _excelSheet = 1;
+        private string _excelSheetName = null;
+
+        private ErrorStrategy _errorStrategy = ErrorStrategy.DoNotAddElement;
+
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
 
         private int _initialRowForData = 2;
 
         public Importer()
         {
-            this._fieldsInfo = new List<Utils.Importer.FieldImportInfo<TImportInto>>();
+            this._fieldsInfo = new List<FieldImportInfo<TImportInto>>();
         }
 
         /// <summary>
@@ -40,6 +48,36 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
+        /// <summary>
+        /// Sets the excel file the importer will use
+        /// </summary>
+        /// <param name="excelPath"></param>
+        /// <returns></returns>
+        public Importer<TImportInto> FromExcel(Stream excelStream, int sheetIndex)
+        {
+            this._excelStream = excelStream;
+            this._excelSheet = sheetIndex;
+            return this;
+        }
+
+        public Importer<TImportInto> SetErrorStrategy(ErrorStrategy strategy)
+        {
+            this._errorStrategy = strategy;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the excel file the importer will use
+        /// </summary>
+        /// <param name="excelPath"></param>
+        /// <returns></returns>
+        public Importer<TImportInto> FromExcel(Stream excelStream, string sheetName)
+        {
+            this._excelStream = excelStream;
+            this._excelSheetName = sheetName;
+            return this;
+        }
+
         public ImportResult<TImportInto> Import()
         {
             var results = new ImportResult<TImportInto>();
@@ -50,7 +88,7 @@ namespace IntNovAction.Utils.Importer
             }
             // abrimos el excel
             var book = new XLWorkbook(this._excelStream);
-            var sheet = book.Worksheets.Worksheet(this._excelSheet);
+            var sheet = GetDataSheet(book);
 
             var numdFilas = sheet.LastRowUsed().RowNumber();
             if (numdFilas == 0)
@@ -69,6 +107,8 @@ namespace IntNovAction.Utils.Importer
             {
                 var imported = new TImportInto();
 
+                bool isRowOk = true;
+
                 foreach (var colImportInfo in this._fieldsInfo.Where(fInfo => fInfo.ColumnNumber != 0))
                 {
                     var property = colImportInfo.MemberExpr.Member as PropertyInfo;
@@ -77,14 +117,27 @@ namespace IntNovAction.Utils.Importer
                     {
                         var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
                         var processor = GetProperPropertyProcessor(property.PropertyType);
-                        processor.SetValue(results, imported, property, cell);
+                        isRowOk &= processor.SetValue(results, imported, property, cell);
                     }
                 }
 
-                results.ImportedItems.Add(imported);
+                if (isRowOk || _errorStrategy == ErrorStrategy.AddElement)
+                {
+                    results.ImportedItems.Add(imported);
+                }
+
             }
 
             return results;
+        }
+
+        private IXLWorksheet GetDataSheet(XLWorkbook book)
+        {
+            if (!string.IsNullOrWhiteSpace(this._excelSheetName))
+            {
+                return book.Worksheets.Worksheet(this._excelSheetName);
+            }
+            return book.Worksheets.Worksheet(this._excelSheet);
         }
 
         internal CellProcessorBase<TImportInto> GetProperPropertyProcessor(Type propertyType)

@@ -11,7 +11,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
     {
         
 
-        internal override void SetValue(ImportResult<TImportInto> results,
+        internal override bool SetValue(ImportResult<TImportInto> results,
             TImportInto objectToFill,
             PropertyInfo property,
             IXLCell cell)
@@ -20,10 +20,14 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             if (cell.TryGetValue(out TPropType valor))
             {
                 property.SetValue(objectToFill, valor);
+                return true;
+
             }
             else
             {
                 base.AddInvalidValueError(results, cell);
+                return false;
+
             }
         }
 

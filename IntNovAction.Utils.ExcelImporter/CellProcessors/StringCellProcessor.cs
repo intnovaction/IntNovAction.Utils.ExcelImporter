@@ -9,7 +9,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
     {
        
 
-        internal override void SetValue(ImportResult<TImportInto> results,
+        internal override bool SetValue(ImportResult<TImportInto> results,
             TImportInto objectToFill,
             PropertyInfo property,
             IXLCell cell)
@@ -22,6 +22,9 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             {
                 property.SetValue(objectToFill, cell.GetString());
             }
+
+            return true;
+
         }
 
 

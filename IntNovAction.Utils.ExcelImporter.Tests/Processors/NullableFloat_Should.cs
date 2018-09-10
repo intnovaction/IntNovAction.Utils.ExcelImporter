@@ -42,8 +42,9 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = 1;
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
 
+            cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeNullOrEmpty();
             ObjectToBeFilled.NullableFloatColumn.Should().Be(1);
         }
@@ -52,8 +53,9 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             Cell.Value = "S";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
 
+            cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
             ImportResult.Errors.Count.Should().Be(1);
             ImportResult.Errors[0].Column.Should().Be(1);
@@ -67,8 +69,9 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsNull()
         {
             Cell.Value = "";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
 
+            cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeEmpty();
 
             ObjectToBeFilled.NullableFloatColumn.Should().Be(null);
@@ -78,8 +81,9 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsNull()
         {
             Cell.Value = null;
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableFloatProperty, Cell);
 
+            cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeEmpty();
 
             ObjectToBeFilled.NullableFloatColumn.Should().Be(null);

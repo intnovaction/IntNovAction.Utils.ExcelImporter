@@ -1,12 +1,11 @@
-﻿using ClosedXML.Excel;
+﻿using System;
+using System.Reflection;
+using ClosedXML.Excel;
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
 using IntNovAction.Utils.Importer;
 using IntNovAction.Utils.Importer.Tests.SampleClasses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
-using System.Reflection;
 
 namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 {
@@ -23,7 +22,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 
         public NullableDateTime_Should()
         {
-            NullableDateProperty = typeof(SampleImportInto).GetProperty(nameof(SampleImportInto.NullableDateColumn));
+            this.NullableDateProperty = typeof(SampleImportInto).GetProperty(nameof(SampleImportInto.NullableDateColumn));
         }
 
         [TestInitialize()]
@@ -42,62 +41,69 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Date_Ok()
         {
 
-            Cell.Value = "2018-01-01";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDateProperty, Cell);
+            this.Cell.Value = "2018-01-01";
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
 
-            ImportResult.Errors.Should().BeNullOrEmpty();
-            ObjectToBeFilled.NullableDateColumn.Should().Be(new DateTime(2018, 1, 1));
+            cellProcessResult.Should().BeTrue();
+
+            this.ImportResult.Errors.Should().BeNullOrEmpty();
+            this.ObjectToBeFilled.NullableDateColumn.Should().Be(new DateTime(2018, 1, 1));
         }
 
         [TestMethod]
         public void Process_Invalid_Date_As_Error()
         {
 
-            Cell.Value = "2018-33-11";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDateProperty, Cell);
+            this.Cell.Value = "2018-33-11";
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
 
-            ImportResult.Errors.Should().NotBeNullOrEmpty();
-            ImportResult.Errors.Count.Should().Be(1);
-            ImportResult.Errors[0].Column.Should().Be(1);
-            ImportResult.Errors[0].Row.Should().Be(1);
-            ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
+            cellProcessResult.Should().BeFalse();
+            this.ImportResult.Errors.Should().NotBeNullOrEmpty();
+            this.ImportResult.Errors.Count.Should().Be(1);
+            this.ImportResult.Errors[0].Column.Should().Be(1);
+            this.ImportResult.Errors[0].Row.Should().Be(1);
+            this.ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
 
         }
 
         [TestMethod]
         public void Process_Letter_AsError()
         {
-            Cell.Value = "S";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDateProperty, Cell);
+            this.Cell.Value = "S";
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
 
-            ImportResult.Errors.Should().NotBeNullOrEmpty();
-            ImportResult.Errors.Count.Should().Be(1);
-            ImportResult.Errors[0].Column.Should().Be(1);
-            ImportResult.Errors[0].Row.Should().Be(1);
-            ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
+            cellProcessResult.Should().BeFalse();
+            this.ImportResult.Errors.Should().NotBeNullOrEmpty();
+            this.ImportResult.Errors.Count.Should().Be(1);
+            this.ImportResult.Errors[0].Column.Should().Be(1);
+            this.ImportResult.Errors[0].Row.Should().Be(1);
+            this.ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
 
         }
 
         [TestMethod]
         public void Process_EmptyString_AsNull()
         {
-            Cell.Value = "";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDateProperty, Cell);
+            this.Cell.Value = "";
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
 
-            ImportResult.Errors.Should().BeEmpty();
+            cellProcessResult.Should().BeTrue();
 
-            ObjectToBeFilled.NullableDateColumn.Should().Be(null);
+            this.ImportResult.Errors.Should().BeEmpty();
+
+            this.ObjectToBeFilled.NullableDateColumn.Should().Be(null);
         }
 
         [TestMethod]
         public void Process_Null_AsNull()
         {
-            Cell.Value = null;
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDateProperty, Cell);
+            this.Cell.Value = null;
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
 
-            ImportResult.Errors.Should().BeEmpty();
+            cellProcessResult.Should().BeTrue();
+            this.ImportResult.Errors.Should().BeEmpty();
 
-            ObjectToBeFilled.NullableDateColumn.Should().Be(null);
+            this.ObjectToBeFilled.NullableDateColumn.Should().Be(null);
         }
 
         public IXLCell GetXLCell()

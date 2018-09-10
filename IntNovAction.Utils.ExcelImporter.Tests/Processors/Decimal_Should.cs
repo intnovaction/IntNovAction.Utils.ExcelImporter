@@ -1,11 +1,10 @@
-﻿using ClosedXML.Excel;
+﻿using System.Reflection;
+using ClosedXML.Excel;
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
 using IntNovAction.Utils.Importer;
 using IntNovAction.Utils.Importer.Tests.SampleClasses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
-using System.Reflection;
 
 namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 {
@@ -22,7 +21,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 
         public Decimal_Should()
         {
-            DecimalProperty = typeof(SampleImportInto).GetProperty(nameof(SampleImportInto.DecimalColumn));
+            this.DecimalProperty = typeof(SampleImportInto).GetProperty(nameof(SampleImportInto.DecimalColumn));
         }
 
         [TestInitialize()]
@@ -41,56 +40,60 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Decimal_Ok()
         {
 
-            Cell.Value = 1;
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, DecimalProperty, Cell);
+            this.Cell.Value = 1;
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
-            ImportResult.Errors.Should().BeNullOrEmpty();
-            ObjectToBeFilled.DecimalColumn.Should().Be(1);
+            cellProcessResult.Should().BeTrue();
+            this.ImportResult.Errors.Should().BeNullOrEmpty();
+            this.ObjectToBeFilled.DecimalColumn.Should().Be(1);
         }
 
         [TestMethod]
         public void Process_Letter_AsError()
         {
-            Cell.Value = "S";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, DecimalProperty, Cell);
+            this.Cell.Value = "S";
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
-            ImportResult.Errors.Should().NotBeNullOrEmpty();
-            ImportResult.Errors.Count.Should().Be(1);
-            ImportResult.Errors[0].Column.Should().Be(1);
-            ImportResult.Errors[0].Row.Should().Be(1);
-            ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
+            cellProcessResult.Should().BeFalse();
+            this.ImportResult.Errors.Should().NotBeNullOrEmpty();
+            this.ImportResult.Errors.Count.Should().Be(1);
+            this.ImportResult.Errors[0].Column.Should().Be(1);
+            this.ImportResult.Errors[0].Row.Should().Be(1);
+            this.ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
 
-            ObjectToBeFilled.DecimalColumn.Should().Be(0);
+            this.ObjectToBeFilled.DecimalColumn.Should().Be(0);
         }
 
         [TestMethod]
         public void Process_EmptyString_AsError()
         {
-            Cell.Value = "";
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, DecimalProperty, Cell);
+            this.Cell.Value = "";
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
-            ImportResult.Errors.Should().NotBeNullOrEmpty();
-            ImportResult.Errors.Count.Should().Be(1);
-            ImportResult.Errors[0].Column.Should().Be(1);
-            ImportResult.Errors[0].Row.Should().Be(1);
-            ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
+            cellProcessResult.Should().BeFalse();
+            this.ImportResult.Errors.Should().NotBeNullOrEmpty();
+            this.ImportResult.Errors.Count.Should().Be(1);
+            this.ImportResult.Errors[0].Column.Should().Be(1);
+            this.ImportResult.Errors[0].Row.Should().Be(1);
+            this.ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
 
-            ObjectToBeFilled.DecimalColumn.Should().Be(0);
+            this.ObjectToBeFilled.DecimalColumn.Should().Be(0);
         }
 
         [TestMethod]
         public void Process_Null_AsError()
         {
-            Cell.Value = null;
-            this.Processor.SetValue(ImportResult, ObjectToBeFilled, DecimalProperty, Cell);
+            this.Cell.Value = null;
+            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
-            ImportResult.Errors.Should().NotBeNullOrEmpty();
-            ImportResult.Errors.Count.Should().Be(1);
-            ImportResult.Errors[0].Column.Should().Be(1);
-            ImportResult.Errors[0].Row.Should().Be(1);
-            ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
+            cellProcessResult.Should().BeFalse();
+            this.ImportResult.Errors.Should().NotBeNullOrEmpty();
+            this.ImportResult.Errors.Count.Should().Be(1);
+            this.ImportResult.Errors[0].Column.Should().Be(1);
+            this.ImportResult.Errors[0].Row.Should().Be(1);
+            this.ImportResult.Errors[0].ErrorType.Should().Be(ImportErrorType.InvalidValue);
 
-            ObjectToBeFilled.DecimalColumn.Should().Be(0);
+            this.ObjectToBeFilled.DecimalColumn.Should().Be(0);
         }
 
         public IXLCell GetXLCell()

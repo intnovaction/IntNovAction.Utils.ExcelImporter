@@ -9,7 +9,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
     {
         
 
-        internal abstract void SetValue(ImportResult<TImportInto> results,
+        internal abstract bool SetValue(ImportResult<TImportInto> results,
             TImportInto objectToFill,
             PropertyInfo property,
             IXLCell cell);
