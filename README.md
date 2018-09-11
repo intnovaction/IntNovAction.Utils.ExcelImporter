@@ -29,8 +29,8 @@ using (var stream = OpenExcel())
     // Create the typed importer
     var importer = new Importer<SampleImportInto>();
 
-    // Configure and import
-    var importResults = importer
+    // Configure
+    importer
         .SetErrorStrategy(ErrorStrategy.AddElement)
         .FromExcel(stream, "Data With Errors")
         .For(p => p.IntColumn, "Int Column")
@@ -43,8 +43,10 @@ using (var stream = OpenExcel())
         .For(p => p.DateColumn, "Date Column")
         .For(p => p.NullableDateColumn, "Nullable Date Column")
         .For(p => p.BooleanColumn, "Boolean Column")
-        .For(p => p.NullableBooleanColumn, "Nullable Boolean Column")
-        .Import();
+        .For(p => p.NullableBooleanColumn, "Nullable Boolean Column");
+
+    // Import
+    var importResults = importer.Import();
     
     // Read the imported objects...
     var numImportedItems = importResults.ImportedItems.Count();

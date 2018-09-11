@@ -40,6 +40,18 @@ namespace IntNovAction.Utils.Importer
         }
 
 
+        /// <summary>
+        /// Sets the strings used to parse the boolean values
+        /// </summary>
+        /// <param name="trueStrings">Strings which will cause the field to be true</param>
+        /// <param name="falseStrings">Strings which will cause the field to be true</param>
+        /// <remarks>The default values of the importer are:
+        /// <list type="bullet">
+        /// <item>TRUE: </item>
+        /// <item>TRUE: </item>
+        /// </list>
+        /// </remarks>
+        /// <returns></returns>
         public Importer<TImportInto> SetBooleanOptions(IEnumerable<string> trueStrings = null, IEnumerable<string> falseStrings = null)
         {
 
@@ -61,7 +73,7 @@ namespace IntNovAction.Utils.Importer
         /// <summary>
         /// Sets the excel file the importer will use
         /// </summary>
-        /// <param name="excelPath"></param>
+        /// <param name="excelStream">The XLSX document stream</param>
         /// <returns></returns>
         public Importer<TImportInto> FromExcel(Stream excelStream)
         {
@@ -73,7 +85,8 @@ namespace IntNovAction.Utils.Importer
         /// <summary>
         /// Sets the excel file the importer will use
         /// </summary>
-        /// <param name="excelPath"></param>
+        /// <param name="excelStream">The XLSX document stream</param>
+        /// <param name="sheetIndex">The 1-based sheet index</param>
         /// <returns></returns>
         public Importer<TImportInto> FromExcel(Stream excelStream, int sheetIndex)
         {
@@ -82,6 +95,11 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
+        /// <summary>
+        /// Specifies an error handling Strategy
+        /// </summary>
+        /// <param name="strategy"></param>
+        /// <returns></returns>
         public Importer<TImportInto> SetErrorStrategy(ErrorStrategy strategy)
         {
             this._errorStrategy = strategy;
@@ -91,7 +109,8 @@ namespace IntNovAction.Utils.Importer
         /// <summary>
         /// Sets the excel file the importer will use
         /// </summary>
-        /// <param name="excelPath"></param>
+        /// <param name="excelStream"></param>
+        /// <param name="sheetName">The sheet name</param>
         /// <returns></returns>
         public Importer<TImportInto> FromExcel(Stream excelStream, string sheetName)
         {
@@ -100,13 +119,17 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
+        /// <summary>
+        /// Perform the importation from the excel
+        /// </summary>
+        /// <returns></returns>
         public ImportResult<TImportInto> Import()
         {
             var results = new ImportResult<TImportInto>();
 
             if (this._excelStream == null)
             {
-                throw new ExcelImportException("No excel stream passed");
+                throw new ExcelImportException($"No excel stream provided, please use the {nameof(this.FromExcel)} method");
             }
             // abrimos el excel
             var book = new XLWorkbook(this._excelStream);
