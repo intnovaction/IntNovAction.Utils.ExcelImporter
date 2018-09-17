@@ -32,6 +32,7 @@ namespace IntNovAction.Utils.Importer
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
 
         private int _initialRowForData = 2;
+        private DuplicatedColumnStrategy _duplicatedColumStrategy;
 
         public Importer()
         {
@@ -145,8 +146,11 @@ namespace IntNovAction.Utils.Importer
                 return results;
             }
 
-            AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
-
+            var canContinue = AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
+            if (!canContinue)
+            {
+                return results;
+            }
 
             for (int cellRow = _initialRowForData; cellRow <= numdFilas; cellRow++)
             {
@@ -174,6 +178,12 @@ namespace IntNovAction.Utils.Importer
             }
 
             return results;
+        }
+
+        internal Importer<TImportInto> SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy duplicatedColumnStrategy)
+        {
+            this._duplicatedColumStrategy = duplicatedColumnStrategy;
+            return this;
         }
 
         private IXLWorksheet GetDataSheet(XLWorkbook book)
@@ -238,26 +248,66 @@ namespace IntNovAction.Utils.Importer
 
 
 
-        private static void AnalyzeHeaders(IXLWorksheet sheet,
+        private bool AnalyzeHeaders(IXLWorksheet sheet,
             List<FieldImportInfo<TImportInto>> fieldsInfo,
             List<ImportErrorInfo> errors)
         {
+
+            bool hasDuplicated = false;
+
+            var columnNames = new Dictionary<string , int>();
+
             var firstRow = sheet.Row(1);
-            foreach (var fieldInfo in fieldsInfo)
+
+            var column = 1;
+            var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
+            while (column <= lastColumn)
             {
-                var column = 1;
-                var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
-                while (column <= lastColumn)
+                var cell = firstRow.Cell(column);
+                if (cell.TryGetValue<string>(out string header))
                 {
-                    if (firstRow.Cell(column).TryGetValue<string>(out string header))
+                    if (columnNames.ContainsKey(header))
                     {
-                        if (string.Equals(header, fieldInfo.ColumnName, StringComparison.CurrentCultureIgnoreCase))
+                        hasDuplicated = hasDuplicated | true;
+
+                        errors.Add(new ImportErrorInfo()
                         {
-                            fieldInfo.ColumnNumber = column;
+                            ErrorType = ImportErrorType.DuplicatedColumn,
+                            Column = cell.Address.ColumnNumber,
+                            ColumnName = cell.Address.ColumnLetter,
+                            CellValue = header,
+                            Row = cell.Address.RowNumber
+                        });
+                        if (_duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
+                        {
+                            columnNames[header] = column;
                         }
                     }
-                    column++;
+                    else
+                    {
+                        columnNames.Add(header, column);
+                    }
                 }
+                column++;
+            }
+
+            if (hasDuplicated && _duplicatedColumStrategy == DuplicatedColumnStrategy.RaiseError)
+            {
+                return false;
+            }
+
+            foreach (var fieldInfo in fieldsInfo)
+            {
+
+                foreach (var header in columnNames.Keys)
+                {
+                    if (string.Equals(header, fieldInfo.ColumnName, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        fieldInfo.ColumnNumber = columnNames[header];
+                        break;
+                    }
+                }
+
 
                 if (fieldInfo.ColumnNumber == 0)
                 {
@@ -268,6 +318,8 @@ namespace IntNovAction.Utils.Importer
                     });
                 }
             }
+
+            return true;
         }
 
         /// <summary>

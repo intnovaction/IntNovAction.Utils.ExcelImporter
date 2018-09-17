@@ -13,6 +13,7 @@ namespace IntNovAction.Utils.Importer
                 "1",
                 "yes",
                 "si",
+                "sí",
                 "true",
                 "verdadero"
             };

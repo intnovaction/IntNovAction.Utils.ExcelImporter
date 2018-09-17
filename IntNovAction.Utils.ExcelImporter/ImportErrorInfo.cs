@@ -14,6 +14,7 @@
     {
         SheetEmpty = 1,
         ColumnNotFound = 2,
-        InvalidValue = 3
+        InvalidValue = 3,
+        DuplicatedColumn = 4
     }
 }

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/intnovaction/IntNovAction.Utils.ExcelImporter</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/intnovaction/IntNovAction.Utils.ExcelImporter/master/LICENSE.txt</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/intnovaction/IntNovAction.Utils.ExcelImporter</RepositoryUrl>
@@ -11,7 +11,7 @@
     <PackageReleaseNotes>Alpha version, not recommended for production use yet.</PackageReleaseNotes>
     <Title>IntNovAction.Utils.ExcelImporter</Title>
     <Description>Imports an Excel into a collection of POCOs. You can specify the mappings, the source sheets, etc.</Description>
-    <VersionPrefix>0.0.2</VersionPrefix>
+    <VersionPrefix>0.0.3</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>

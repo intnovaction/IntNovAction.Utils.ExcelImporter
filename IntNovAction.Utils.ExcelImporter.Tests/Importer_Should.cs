@@ -114,5 +114,74 @@ namespace IntNovAction.Utils.Importer.Tests
             return stream;
         }
 
+
+        [TestMethod]
+        public void Show_Error_When_Columns_Are_Duplicated()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.RaiseError)
+                    .FromExcel(stream, "Duplicated Columns")
+                    .SetErrorStrategy(ErrorStrategy.AddElement)
+                    .For(p => p.IntColumn, "Int Column")
+                    .Import();
+
+                lista.Result.Should().Be(ImportErrorResult.Error);
+
+                lista.Errors.Should().NotBeNullOrEmpty();
+
+                lista.ImportedItems.Should().NotBeNull();
+                lista.ImportedItems.Should().BeEmpty();
+            }
+        }
+
+        [TestMethod]
+        public void Take_First_Value_When_Columns_Are_Duplicated_And_Strategy_Set()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.TakeFirst)
+                    .FromExcel(stream, "Duplicated Columns")
+                    .SetErrorStrategy(ErrorStrategy.AddElement)
+                    .For(p => p.IntColumn, "Int Column")
+                    .Import();
+
+                lista.Result.Should().Be(ImportErrorResult.PartialOk);
+
+                lista.Errors.Should().NotBeNullOrEmpty();
+
+                lista.ImportedItems.Should().NotBeNullOrEmpty();
+                lista.ImportedItems[0].IntColumn.Should().Be(1);
+            }
+        }
+
+        [TestMethod]
+        public void Take_Last_Value_When_Columns_Are_Duplicated_And_Strategy_Set()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.TakeLast)
+                    .FromExcel(stream, "Duplicated Columns")
+                    .SetErrorStrategy(ErrorStrategy.AddElement)
+                    .For(p => p.IntColumn, "Int Column")
+                    .Import();
+
+                lista.Result.Should().Be(ImportErrorResult.PartialOk);
+
+                lista.Errors.Should().NotBeNullOrEmpty();
+
+                lista.ImportedItems.Should().NotBeNullOrEmpty();
+                lista.ImportedItems[0].IntColumn.Should().Be(33);
+            }
+        }
     }
 }
