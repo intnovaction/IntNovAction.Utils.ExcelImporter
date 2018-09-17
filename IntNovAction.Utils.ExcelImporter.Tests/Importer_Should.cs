@@ -19,7 +19,7 @@ namespace IntNovAction.Utils.Importer.Tests
             using (var stream = OpenExcel())
             {
                 var lista = importer
-                    .FromExcel(stream)                    
+                    .FromExcel(stream)
                     .For(p => p.IntColumn, "Int Column")
                     .For(p => p.FloatColumn, "Float Column")
                     .For(p => p.DecimalColumn, "Decimal Column")
@@ -181,6 +181,30 @@ namespace IntNovAction.Utils.Importer.Tests
 
                 lista.ImportedItems.Should().NotBeNullOrEmpty();
                 lista.ImportedItems[0].IntColumn.Should().Be(33);
+            }
+        }
+
+        [TestMethod]
+        public void Fill_RowIndex_Property()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .FromExcel(stream)
+                    .SetRowIndex(p => p.RowIndex)
+                    .For(p => p.IntColumn, "Int Column")
+                    .Import();
+
+                lista.Result.Should().Be(ImportErrorResult.Ok);
+
+                lista.Errors.Should().NotBeNull();
+                lista.Errors.Should().BeEmpty();
+
+                lista.ImportedItems.Should().NotBeNullOrEmpty();
+                lista.ImportedItems[0].RowIndex = 1;
+                lista.ImportedItems[4].RowIndex = 5;
             }
         }
     }

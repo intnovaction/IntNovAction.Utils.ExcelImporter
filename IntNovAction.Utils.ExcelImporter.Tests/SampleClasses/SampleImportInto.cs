@@ -28,5 +28,7 @@ namespace IntNovAction.Utils.Importer.Tests.SampleClasses
         public bool BooleanColumn { get; set; }
 
         public bool? NullableBooleanColumn { get; set; }
+
+        public int RowIndex { get; set; }
     }
 }

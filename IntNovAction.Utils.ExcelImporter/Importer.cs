@@ -19,6 +19,11 @@ namespace IntNovAction.Utils.Importer
 
         private Stream _excelStream;
 
+        internal object SetRowIndex(Func<object, object> p)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// El numero de hoja dentro del workbool
         /// </summary>
@@ -33,6 +38,7 @@ namespace IntNovAction.Utils.Importer
 
         private int _initialRowForData = 2;
         private DuplicatedColumnStrategy _duplicatedColumStrategy;
+        private Expression<Func<TImportInto, int>> _rowIndexExpression;
 
         public Importer()
         {
@@ -168,6 +174,13 @@ namespace IntNovAction.Utils.Importer
                         var processor = GetProperPropertyProcessor(property.PropertyType);
                         isRowOk &= processor.SetValue(results, imported, property, cell);
                     }
+                }
+
+                if (this._rowIndexExpression != null)
+                {
+                    var property = Util<TImportInto, int>.GetMemberExpression(this._rowIndexExpression).Member as PropertyInfo; 
+
+                    property.SetValue(imported, cellRow);
                 }
 
                 if (isRowOk || _errorStrategy == ErrorStrategy.AddElement)
@@ -339,6 +352,15 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
-
+        /// <summary>
+        /// Fill the property with the row index
+        /// </summary>
+        /// <param name="memberAccessor"></param>
+        /// <returns></returns>
+        public Importer<TImportInto> SetRowIndex(Expression<Func<TImportInto, int>> memberAccessor)
+        {
+            this._rowIndexExpression = memberAccessor;
+            return this;
+        }
     }
 }

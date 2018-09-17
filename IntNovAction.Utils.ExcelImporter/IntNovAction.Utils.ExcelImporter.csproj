@@ -11,7 +11,7 @@
     <PackageReleaseNotes>Alpha version, not recommended for production use yet.</PackageReleaseNotes>
     <Title>IntNovAction.Utils.ExcelImporter</Title>
     <Description>Imports an Excel into a collection of POCOs. You can specify the mappings, the source sheets, etc.</Description>
-    <VersionPrefix>0.0.3</VersionPrefix>
+    <VersionPrefix>0.0.4</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
