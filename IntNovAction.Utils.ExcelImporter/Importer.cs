@@ -193,7 +193,7 @@ namespace IntNovAction.Utils.Importer
             return results;
         }
 
-        internal Importer<TImportInto> SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy duplicatedColumnStrategy)
+        public Importer<TImportInto> SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy duplicatedColumnStrategy)
         {
             this._duplicatedColumStrategy = duplicatedColumnStrategy;
             return this;
