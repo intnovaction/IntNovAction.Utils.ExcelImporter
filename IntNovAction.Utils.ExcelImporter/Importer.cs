@@ -17,22 +17,71 @@ namespace IntNovAction.Utils.Importer
     public class Importer<TImportInto>
         where TImportInto : class, new()
     {
+
         private Stream _excelStream;
 
-        private readonly int _excelSheet = 1;
+        internal object SetRowIndex(Func<object, object> p)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// El numero de hoja dentro del workbool
+        /// </summary>
+        private int _excelSheet = 1;
+        private string _excelSheetName = null;
+
+        private readonly BooleanOptions _boolOptions;
+
+        private ErrorStrategy _errorStrategy = ErrorStrategy.DoNotAddElement;
+
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
 
         private int _initialRowForData = 2;
+        private DuplicatedColumnStrategy _duplicatedColumStrategy;
+        private Expression<Func<TImportInto, int>> _rowIndexExpression;
 
         public Importer()
         {
-            this._fieldsInfo = new List<FieldImportInfo>>();
+            this._fieldsInfo = new List<FieldImportInfo<TImportInto>>();
+            this._boolOptions = new BooleanOptions();
+        }
+
+
+        /// <summary>
+        /// Sets the strings used to parse the boolean values
+        /// </summary>
+        /// <param name="trueStrings">Strings which will cause the field to be true</param>
+        /// <param name="falseStrings">Strings which will cause the field to be true</param>
+        /// <remarks>The default values of the importer are:
+        /// <list type="bullet">
+        /// <item>TRUE: </item>
+        /// <item>TRUE: </item>
+        /// </list>
+        /// </remarks>
+        /// <returns></returns>
+        public Importer<TImportInto> SetBooleanOptions(IEnumerable<string> trueStrings = null, IEnumerable<string> falseStrings = null)
+        {
+
+            if (trueStrings != null)
+            {
+                this._boolOptions.TrueStrings.Clear();
+                this._boolOptions.TrueStrings.AddRange(trueStrings.ToList());
+            }
+
+            if (falseStrings != null)
+            {
+                this._boolOptions.FalseStrings.Clear();
+                this._boolOptions.FalseStrings.AddRange(falseStrings.ToList());
+            }
+
+            return this;
         }
 
         /// <summary>
         /// Sets the excel file the importer will use
         /// </summary>
-        /// <param name="excelPath"></param>
+        /// <param name="excelStream">The XLSX document stream</param>
         /// <returns></returns>
         public Importer<TImportInto> FromExcel(Stream excelStream)
         {
@@ -41,25 +90,58 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
-
-        public Stream GenerateExcel()
+        /// <summary>
+        /// Sets the excel file the importer will use
+        /// </summary>
+        /// <param name="excelStream">The XLSX document stream</param>
+        /// <param name="sheetIndex">The 1-based sheet index</param>
+        /// <returns></returns>
+        public Importer<TImportInto> FromExcel(Stream excelStream, int sheetIndex)
         {
-            var generator = new Generator<TImportInto();
-
-            return generator.GenerateExcel(this._fieldsInfo);
+            this._excelStream = excelStream;
+            this._excelSheet = sheetIndex;
+            return this;
         }
 
+        /// <summary>
+        /// Specifies an error handling Strategy
+        /// </summary>
+        /// <param name="strategy"></param>
+        /// <returns></returns>
+        public Importer<TImportInto> SetErrorStrategy(ErrorStrategy strategy)
+        {
+            this._errorStrategy = strategy;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the excel file the importer will use
+        /// </summary>
+        /// <param name="excelStream"></param>
+        /// <param name="sheetName">The sheet name</param>
+        /// <returns></returns>
+        public Importer<TImportInto> FromExcel(Stream excelStream, string sheetName)
+        {
+            this._excelStream = excelStream;
+            this._excelSheetName = sheetName;
+            return this;
+        }
+
+        /// <summary>
+        /// Perform the importation from the excel
+        /// </summary>
+        /// <returns></returns>
         public ImportResult<TImportInto> Import()
         {
             var results = new ImportResult<TImportInto>();
 
             if (this._excelStream == null)
             {
-                throw new ExcelImportException("No excel stream passed");
+                throw new ExcelImportException($"No excel stream provided, please use the {nameof(this.FromExcel)} method");
             }
             // abrimos el excel
             var book = new XLWorkbook(this._excelStream);
-            var sheet = book.Worksheets.Worksheet(this._excelSheet);
+            var sheet = GetDataSheet(book);
 
             var numdFilas = sheet.LastRowUsed().RowNumber();
             if (numdFilas == 0)
@@ -71,12 +153,17 @@ namespace IntNovAction.Utils.Importer
                 return results;
             }
 
-            AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
-
+            var canContinue = AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
+            if (!canContinue)
+            {
+                return results;
+            }
 
             for (int cellRow = _initialRowForData; cellRow <= numdFilas; cellRow++)
             {
                 var imported = new TImportInto();
+
+                bool isRowOk = true;
 
                 foreach (var colImportInfo in this._fieldsInfo.Where(fInfo => fInfo.ColumnNumber != 0))
                 {
@@ -86,9 +173,19 @@ namespace IntNovAction.Utils.Importer
                     {
                         var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
                         var processor = GetProperPropertyProcessor(property.PropertyType);
-                        processor.SetValue(results, imported, property, cell);
+                        isRowOk &= processor.SetValue(results, imported, property, cell);
                     }
+                }
 
+                if (this._rowIndexExpression != null)
+                {
+                    var property = Util<TImportInto, int>.GetMemberExpression(this._rowIndexExpression).Member as PropertyInfo; 
+
+                    property.SetValue(imported, cellRow);
+                }
+
+                if (isRowOk || _errorStrategy == ErrorStrategy.AddElement)
+                {
                     results.ImportedItems.Add(imported);
                 }
 
@@ -97,15 +194,66 @@ namespace IntNovAction.Utils.Importer
             return results;
         }
 
+        public Importer<TImportInto> SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy duplicatedColumnStrategy)
+        {
+            this._duplicatedColumStrategy = duplicatedColumnStrategy;
+            return this;
+        }
+
+        private IXLWorksheet GetDataSheet(XLWorkbook book)
+        {
+            if (!string.IsNullOrWhiteSpace(this._excelSheetName))
+            {
+                return book.Worksheets.Worksheet(this._excelSheetName);
+            }
+            return book.Worksheets.Worksheet(this._excelSheet);
+        }
+
         internal CellProcessorBase<TImportInto> GetProperPropertyProcessor(Type propertyType)
         {
             if (propertyType.FullName == typeof(int).FullName)
             {
-                return new IntegerCellProcessor<TImportInto>();
+                return new NumberCellProcessor<int, TImportInto>();
             }
             else if (propertyType.FullName == typeof(int?).FullName)
             {
-                return new NullableIntegerCellProcessor<TImportInto>();
+                return new NumberNullableCellProcessor<int, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(decimal).FullName)
+            {
+                return new NumberCellProcessor<decimal, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(decimal?).FullName)
+            {
+                return new NumberNullableCellProcessor<decimal, TImportInto>();
+            }
+            else if(propertyType.FullName == typeof(float).FullName)
+            {
+                return new NumberCellProcessor<float, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(float?).FullName)
+            {
+                return new NumberNullableCellProcessor<float, TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(DateTime).FullName)
+            {
+                return new DateCellProcessor<TImportInto>(false);
+            }
+            else if (propertyType.FullName == typeof(DateTime?).FullName)
+            {
+                return new DateCellProcessor<TImportInto>(true);
+            }
+            else if (propertyType.FullName == typeof(string).FullName)
+            {
+                return new StringCellProcessor<TImportInto>();
+            }
+            else if (propertyType.FullName == typeof(Boolean).FullName)
+            {
+                return new BooleanCellProcessor<TImportInto>(false, this._boolOptions);
+            }
+            else if (propertyType.FullName == typeof(Boolean?).FullName)
+            {
+                return new BooleanCellProcessor<TImportInto>(true, this._boolOptions);
             }
 
             throw new NotImplementedException($"The processor for {propertyType.FullName} is not implemented");
@@ -114,26 +262,66 @@ namespace IntNovAction.Utils.Importer
 
 
 
-        private static void AnalyzeHeaders(IXLWorksheet sheet,
+        private bool AnalyzeHeaders(IXLWorksheet sheet,
             List<FieldImportInfo<TImportInto>> fieldsInfo,
             List<ImportErrorInfo> errors)
         {
+
+            bool hasDuplicated = false;
+
+            var columnNames = new Dictionary<string , int>();
+
             var firstRow = sheet.Row(1);
-            foreach (var fieldInfo in fieldsInfo)
+
+            var column = 1;
+            var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
+            while (column <= lastColumn)
             {
-                var column = 1;
-                var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
-                while (column <= lastColumn)
+                var cell = firstRow.Cell(column);
+                if (cell.TryGetValue<string>(out string header))
                 {
-                    if (firstRow.Cell(column).TryGetValue<string>(out string header))
+                    if (columnNames.ContainsKey(header))
                     {
-                        if (string.Equals(header, fieldInfo.ColumnName, StringComparison.CurrentCultureIgnoreCase))
+                        hasDuplicated = hasDuplicated | true;
+
+                        errors.Add(new ImportErrorInfo()
                         {
-                            fieldInfo.ColumnNumber = column;
+                            ErrorType = ImportErrorType.DuplicatedColumn,
+                            Column = cell.Address.ColumnNumber,
+                            ColumnName = cell.Address.ColumnLetter,
+                            CellValue = header,
+                            Row = cell.Address.RowNumber
+                        });
+                        if (_duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
+                        {
+                            columnNames[header] = column;
                         }
                     }
-                    column++;
+                    else
+                    {
+                        columnNames.Add(header, column);
+                    }
                 }
+                column++;
+            }
+
+            if (hasDuplicated && _duplicatedColumStrategy == DuplicatedColumnStrategy.RaiseError)
+            {
+                return false;
+            }
+
+            foreach (var fieldInfo in fieldsInfo)
+            {
+
+                foreach (var header in columnNames.Keys)
+                {
+                    if (string.Equals(header, fieldInfo.ColumnName, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        fieldInfo.ColumnNumber = columnNames[header];
+                        break;
+                    }
+                }
+
 
                 if (fieldInfo.ColumnNumber == 0)
                 {
@@ -144,6 +332,8 @@ namespace IntNovAction.Utils.Importer
                     });
                 }
             }
+
+            return true;
         }
 
         /// <summary>
@@ -163,6 +353,15 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
-
+        /// <summary>
+        /// Fill the property with the row index
+        /// </summary>
+        /// <param name="memberAccessor"></param>
+        /// <returns></returns>
+        public Importer<TImportInto> SetRowIndex(Expression<Func<TImportInto, int>> memberAccessor)
+        {
+            this._rowIndexExpression = memberAccessor;
+            return this;
+        }
     }
 }

@@ -1,26 +1,27 @@
-﻿using ClosedXML.Excel;
+﻿using System.Reflection;
+using ClosedXML.Excel;
 using IntNovAction.Utils.Importer;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 
 namespace IntNovAction.Utils.ExcelImporter.CellProcessors
 {
-    abstract class CellProcessorBase<TImportInto>
-        where TImportInto: class
+    internal abstract class CellProcessorBase<TImportInto>
+        where TImportInto : class
     {
-        internal abstract void SetValue(ImportResult<TImportInto> results,
+        
+
+        internal abstract bool SetValue(ImportResult<TImportInto> results,
             TImportInto objectToFill,
             PropertyInfo property,
             IXLCell cell);
 
-        protected void AddError(ImportResult<TImportInto> results, IXLCell cell)
+        protected void AddInvalidValueError(ImportResult<TImportInto> results, IXLCell cell)
         {
             results.Errors.Add(new ImportErrorInfo()
             {
                 Column = cell.Address.ColumnNumber,
                 Row = cell.Address.RowNumber,
+                ColumnName = cell.Address.ColumnLetter,
+                CellValue = cell.GetString(),
                 ErrorType = ImportErrorType.InvalidValue
             });
         }
