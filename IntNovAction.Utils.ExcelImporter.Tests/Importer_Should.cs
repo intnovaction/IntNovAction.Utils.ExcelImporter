@@ -66,5 +66,24 @@ namespace IntNovAction.Utils.Importer.Tests
             return stream;
         }
 
+
+        [TestMethod]
+        public void Generate_Excel_FromImport()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            using (var stream = OpenExcel())
+            {
+                var excelStream = importer
+                    .For(p => p.NullableIntColumn, "Nullable Int Column")
+                    .For(p => p.BoolColumn, "Bool Column")
+                    .For(p => p.DateColumn, "Date column")
+                    .GenerateExcel();
+
+                excelStream.Should().NotBeNull();
+                
+            }
+        }
+
     }
 }

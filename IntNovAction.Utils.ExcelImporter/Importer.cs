@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
+using IntNovAction.Utils.ExcelImporter.ExcelGenerator;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +26,7 @@ namespace IntNovAction.Utils.Importer
 
         public Importer()
         {
-            this._fieldsInfo = new List<Utils.Importer.FieldImportInfo<TImportInto>>();
+            this._fieldsInfo = new List<FieldImportInfo>>();
         }
 
         /// <summary>
@@ -38,6 +39,14 @@ namespace IntNovAction.Utils.Importer
             this._excelStream = excelStream;
 
             return this;
+        }
+
+
+        public Stream GenerateExcel()
+        {
+            var generator = new Generator<TImportInto();
+
+            return generator.GenerateExcel(this._fieldsInfo);
         }
 
         public ImportResult<TImportInto> Import()
