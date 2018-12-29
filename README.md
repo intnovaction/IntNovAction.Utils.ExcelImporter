@@ -56,3 +56,29 @@ using (var stream = OpenExcel())
 }
 
 ```
+
+It also allows to generate an Excel file with the exact format to import the data, very useful as a template
+
+```c#
+	var importer = new Importer<SampleImportInto>();
+
+    // Configure
+    importer
+        .For(p => p.IntColumn, "Int Column")
+        .For(p => p.FloatColumn, "Float Column")
+        .For(p => p.DecimalColumn, "Decimal Column")
+        .For(p => p.NullableIntColumn, "Nullable Int Column")
+        .For(p => p.NullableFloatColumn, "Nullable Float Column")
+        .For(p => p.NullableDecimalColumn, "Nullable Decimal Column")
+        .For(p => p.StringColumn, "String Column")
+        .For(p => p.DateColumn, "Date Column")
+        .For(p => p.NullableDateColumn, "Nullable Date Column")
+        .For(p => p.BooleanColumn, "Boolean Column")
+        .For(p => p.NullableBooleanColumn, "Nullable Boolean Column");
+
+	using (var excelStream = importer.GenerateExcel())
+    {
+		// Do stuff with the excel
+	}
+
+```

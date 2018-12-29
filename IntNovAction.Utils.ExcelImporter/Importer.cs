@@ -91,6 +91,18 @@ namespace IntNovAction.Utils.Importer
         }
 
         /// <summary>
+        /// Generates an excel that can be used to import data.
+        /// The excel is created with the fields configured for the importer
+        /// </summary>
+        /// <returns></returns>
+        public Stream GenerateExcel()
+        {
+            var generator = new Generator<TImportInto>();
+
+            return generator.GenerateExcel(this._fieldsInfo);
+        }
+
+        /// <summary>
         /// Sets the excel file the importer will use
         /// </summary>
         /// <param name="excelStream">The XLSX document stream</param>
