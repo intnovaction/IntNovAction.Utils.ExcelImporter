@@ -23,8 +23,9 @@ class SampleImportInto
     public bool? NullableBooleanColumn { get; set; }
 }
 
+
 // Read the excel file 
-using (var stream = OpenExcel())
+using (var stream = File.OpenRead("d:\\ExceñWithData.xlsx"))
 {
     // Create the typed importer
     var importer = new Importer<SampleImportInto>();
@@ -32,7 +33,7 @@ using (var stream = OpenExcel())
     // Configure
     importer
         .SetErrorStrategy(ErrorStrategy.AddElement)
-        .FromExcel(stream, "Data With Errors")
+        .FromExcel(stream, "Sheet Name")
         .For(p => p.IntColumn, "Int Column")
         .For(p => p.FloatColumn, "Float Column")
         .For(p => p.DecimalColumn, "Decimal Column")

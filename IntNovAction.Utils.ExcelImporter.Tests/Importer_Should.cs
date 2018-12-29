@@ -224,12 +224,6 @@ namespace IntNovAction.Utils.Importer.Tests
             {
                 excelStream.Should().NotBeNull();
 
-                excelStream.Seek(0, SeekOrigin.Begin);
-                var a = File.OpenWrite("d:\\pp.xlsx");
-                excelStream.CopyTo(a);
-                a.Flush();
-                a.Close();
-
                 var book = new XLWorkbook(excelStream);
                 book.Should().NotBeNull();
                 book.Worksheets.Count().Should().Be(1);
