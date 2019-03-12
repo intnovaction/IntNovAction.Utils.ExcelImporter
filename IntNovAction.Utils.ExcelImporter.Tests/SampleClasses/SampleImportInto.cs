@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace IntNovAction.Utils.Importer.Tests.SampleClasses
+namespace IntNovAction.Utils.ExcelImporter.Tests.SampleClasses
 {
     class SampleImportInto
     {
@@ -19,6 +19,14 @@ namespace IntNovAction.Utils.Importer.Tests.SampleClasses
         public float? NullableFloatColumn { get; set; }
 
         public string StringColumn { get; set; } 
+
+        public char GetterOnly
+        {
+            get
+            {
+                return StringColumn[0];
+            }
+        }
 
         public DateTime DateColumn { get; set; }
 

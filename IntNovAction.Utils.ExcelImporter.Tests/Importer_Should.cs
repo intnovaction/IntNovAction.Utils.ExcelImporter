@@ -1,12 +1,12 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
-using IntNovAction.Utils.Importer.Tests.SampleClasses;
+using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
+using IntNovAction.Utils.Importer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace IntNovAction.Utils.Importer.Tests
+namespace IntNovAction.Utils.ExcelImporter.Tests
 {
     [TestClass]
     public class Importer_Should
@@ -205,6 +205,24 @@ namespace IntNovAction.Utils.Importer.Tests
                 lista.ImportedItems.Should().NotBeNullOrEmpty();
                 lista.ImportedItems[0].RowIndex = 1;
                 lista.ImportedItems[4].RowIndex = 5;
+            }
+        }
+
+
+        [TestMethod]
+        public void InnerClass()
+        {
+            var importer = new Importer<ClassWithInnerClass>();
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .FromExcel(stream)
+
+                    .For(p => p.Inner.Prop1, "Int Column")
+                    ;
+
+
             }
         }
     }

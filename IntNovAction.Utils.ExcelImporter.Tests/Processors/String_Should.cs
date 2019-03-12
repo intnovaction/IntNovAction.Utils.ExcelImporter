@@ -2,7 +2,7 @@
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
 using IntNovAction.Utils.Importer;
-using IntNovAction.Utils.Importer.Tests.SampleClasses;
+using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Reflection;
