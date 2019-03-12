@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
+using IntNovAction.Utils.ExcelImporter.ExcelGenerator;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -87,6 +88,18 @@ namespace IntNovAction.Utils.Importer
             this._excelStream = excelStream;
 
             return this;
+        }
+
+        /// <summary>
+        /// Generates an excel that can be used to import data.
+        /// The excel is created with the fields configured for the importer
+        /// </summary>
+        /// <returns></returns>
+        public Stream GenerateExcel()
+        {
+            var generator = new Generator<TImportInto>();
+
+            return generator.GenerateExcel(this._fieldsInfo);
         }
 
         /// <summary>
