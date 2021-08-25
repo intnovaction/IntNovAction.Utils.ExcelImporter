@@ -4,11 +4,8 @@ using System.Reflection;
 using ClosedXML.Excel;
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
-using IntNovAction.Utils.Importer;
+using IntNovAction.Utils.ExcelImporter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace IntNovAction.Utils.ExcelImporter.Tests
 {
@@ -261,7 +258,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
             {
                 excelStream.Should().NotBeNull();
                 excelBook = new XLWorkbook(excelStream);
-                
+
                 var worksheet = excelBook.Worksheet(1);
 
                 worksheet.Row(2).Cell(1).Value = 1;
@@ -292,18 +289,65 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
 
 
         [TestMethod]
-        public void InnerClass()
+        public void Generate_With_InnerClass()
         {
             var importer = new Importer<ClassWithInnerClass>();
 
-            using (var stream = OpenExcel())
+            importer
+                .For(p => p.Inner.PropInt, "Inner Column")
+                .For(p => p.Inner, "Base Column");
+
+            using (var stream = importer.GenerateExcel())
             {
-                var lista = importer
-                    .FromExcel(stream)
+                stream.Should().NotBeNull();
 
-                    .For(p => p.Inner.Prop1, "Int Column")
-                    ;
+                var book = new XLWorkbook(stream);
+                book.Should().NotBeNull();
+                book.Worksheets.Count().Should().Be(1);
 
+                var worksheet = book.Worksheet(1);
+
+                worksheet.Row(1).Cell(1).Value.Should().Be("Inner Column");
+                worksheet.Row(1).Cell(2).Value.Should().Be("Base Column");
+            }
+        }
+
+        [TestMethod]
+        public void Import_From_Generated_Excel_AnidatedClass()
+        {
+            var importer = new Importer<ClassWithInnerClass>();
+
+            importer
+                .For(p => p.Inner.PropInt, "Inner Column")
+                .For(p => p.TestInt, "Base Column");
+
+            XLWorkbook excelBook;
+
+            using (var excelStream = importer.GenerateExcel())
+            {
+                excelStream.Should().NotBeNull();
+                excelBook = new XLWorkbook(excelStream);
+
+                var worksheet = excelBook.Worksheet(1);
+
+                worksheet.Row(2).Cell(1).Value = 1;
+                worksheet.Row(2).Cell(2).Value = 2;
+
+                using (var destinationExcelStream = new MemoryStream())
+                {
+                    excelBook.SaveAs(destinationExcelStream);
+
+                    var importResult = importer.FromExcel(destinationExcelStream)
+                        .Import();
+
+                    importResult.Should().NotBeNull();
+                    importResult.Result.Should().NotBeNull();
+                    importResult.ImportedItems.Should().NotBeNullOrEmpty();
+                    importResult.ImportedItems.Count.Should().Be(1);
+
+                    importResult.ImportedItems[0].Inner.PropInt.Should().Be(1);
+                    importResult.ImportedItems[0].TestInt.Should().Be(2);
+                }
 
             }
         }

@@ -1,4 +1,4 @@
-﻿namespace IntNovAction.Utils.Importer
+﻿namespace IntNovAction.Utils.ExcelImporter
 {
     public enum ErrorStrategy
     {

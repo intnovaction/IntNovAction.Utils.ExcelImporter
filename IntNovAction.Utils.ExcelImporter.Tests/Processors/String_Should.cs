@@ -1,7 +1,7 @@
 ﻿using ClosedXML.Excel;
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
-using IntNovAction.Utils.Importer;
+using IntNovAction.Utils.ExcelImporter;
 using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;

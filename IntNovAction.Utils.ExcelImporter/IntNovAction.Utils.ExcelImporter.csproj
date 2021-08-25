@@ -8,12 +8,12 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/intnovaction/IntNovAction.Utils.ExcelImporter/master/LICENSE.txt</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/intnovaction/IntNovAction.Utils.ExcelImporter</RepositoryUrl>
     <PackageTags>c# Excel Import ClosedXml</PackageTags>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>Changes in namespaces, Now you can specify the initial coordinates for the importation</PackageReleaseNotes>
     <Title>IntNovAction.Utils.ExcelImporter</Title>
     <Description>Imports an Excel into a collection of POCOs. You can specify the mappings, the source sheets, etc. You can also generate a excel with the proper columns to import the data.</Description>
     <VersionPrefix>0.0.5</VersionPrefix>
-    <Version>0.0.6</Version>
-    <AssemblyVersion>0.0.6.0</AssemblyVersion>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.93.1" />
+    <PackageReference Include="ClosedXML" Version="0.94.2" />
   </ItemGroup>
 
 </Project>

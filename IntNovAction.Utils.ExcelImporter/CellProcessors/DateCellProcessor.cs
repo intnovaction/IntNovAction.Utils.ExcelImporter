@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Reflection;
 using ClosedXML.Excel;
-using IntNovAction.Utils.Importer;
+using IntNovAction.Utils.ExcelImporter;
 
 namespace IntNovAction.Utils.ExcelImporter.CellProcessors
 {
     internal class DateCellProcessor<TImportInto> : CellProcessorBase<TImportInto>
         where TImportInto : class
     {
-        private bool IsNullable;
+        private readonly bool IsNullable;
 
         public DateCellProcessor(bool nullable) : base()
         {
@@ -16,7 +16,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
         }
 
         internal override bool SetValue(ImportResult<TImportInto> results,
-            TImportInto objectToFill,
+            object objectToFill,
             PropertyInfo property,
             IXLCell cell)
         {

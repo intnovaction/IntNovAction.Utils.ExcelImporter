@@ -58,6 +58,8 @@ using (var stream = File.OpenRead("d:\\ExceñWithData.xlsx"))
 
 ```
 
+It supports nested objects also (1-1 relationships), but the default constructor must create the nested objects.
+
 It also allows to generate an Excel file with the exact format to import the data, very useful as a template
 
 ```c#

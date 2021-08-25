@@ -1,14 +1,14 @@
-﻿using ClosedXML.Excel;
-using IntNovAction.Utils.ExcelImporter.CellProcessors;
-using IntNovAction.Utils.ExcelImporter.ExcelGenerator;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using ClosedXML.Excel;
+using IntNovAction.Utils.ExcelImporter.CellProcessors;
+using IntNovAction.Utils.ExcelImporter.ExcelGenerator;
 
-namespace IntNovAction.Utils.Importer
+namespace IntNovAction.Utils.ExcelImporter
 {
     /// <summary>
     /// The importer
@@ -37,7 +37,10 @@ namespace IntNovAction.Utils.Importer
 
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
 
+        private int _initialRow = 1;
+        private int _initialColumn = 1;
         private int _initialRowForData = 2;
+
         private DuplicatedColumnStrategy _duplicatedColumStrategy;
         private Expression<Func<TImportInto, int>> _rowIndexExpression;
 
@@ -86,6 +89,15 @@ namespace IntNovAction.Utils.Importer
         public Importer<TImportInto> FromExcel(Stream excelStream)
         {
             this._excelStream = excelStream;
+
+            return this;
+        }
+
+        public Importer<TImportInto> SetInitialCoordintates(int headerStartColumn = 1, int headerStartRow = 1)
+        {
+            this._initialRow = headerStartRow;
+            this._initialRowForData = headerStartRow + 1;
+            this._initialColumn = headerStartColumn;
 
             return this;
         }
@@ -171,39 +183,63 @@ namespace IntNovAction.Utils.Importer
                 return results;
             }
 
-            for (int cellRow = _initialRowForData; cellRow <= numdFilas; cellRow++)
+            for (int cellRow = this._initialRowForData; cellRow <= numdFilas; cellRow++)
             {
-                var imported = new TImportInto();
+                var target = new TImportInto();
 
                 bool isRowOk = true;
 
                 foreach (var colImportInfo in this._fieldsInfo.Where(fInfo => fInfo.ColumnNumber != 0))
                 {
                     var property = colImportInfo.MemberExpr.Member as PropertyInfo;
+                    var realTarget = GetTargetObject(target, colImportInfo.MemberExpr);
 
                     if (property != null)
                     {
                         var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
+
                         var processor = GetProperPropertyProcessor(property.PropertyType);
-                        isRowOk &= processor.SetValue(results, imported, property, cell);
+
+                        isRowOk &= processor.SetValue(results, realTarget, property, cell);
                     }
                 }
 
                 if (this._rowIndexExpression != null)
                 {
-                    var property = Util<TImportInto, int>.GetMemberExpression(this._rowIndexExpression).Member as PropertyInfo; 
+                    var property = Util<TImportInto, int>.GetMemberExpression(this._rowIndexExpression).Member as PropertyInfo;
 
-                    property.SetValue(imported, cellRow);
+                    property.SetValue(target, cellRow);
                 }
 
-                if (isRowOk || _errorStrategy == ErrorStrategy.AddElement)
+                if (isRowOk || this._errorStrategy == ErrorStrategy.AddElement)
                 {
-                    results.ImportedItems.Add(imported);
+                    results.ImportedItems.Add(target);
                 }
 
             }
 
             return results;
+        }
+
+        private object GetTargetObject(TImportInto target, MemberExpression memberExpr)
+        {
+            var expressionAsString = memberExpr.ToString();
+            var objectPath = expressionAsString.Substring(expressionAsString.IndexOf(".") + 1).Split('.');
+            if (objectPath.Length == 1)
+            {
+                return target;
+            }
+            else
+            {
+
+                object tempTarget = target;
+                for (var i = 0; i < objectPath.Length - 1; i++)
+                {
+                    PropertyInfo propertyToGet = tempTarget.GetType().GetProperty(objectPath[i]);
+                    tempTarget = propertyToGet.GetValue(tempTarget);
+                }
+                return tempTarget;
+            }
         }
 
         public Importer<TImportInto> SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy duplicatedColumnStrategy)
@@ -239,7 +275,7 @@ namespace IntNovAction.Utils.Importer
             {
                 return new NumberNullableCellProcessor<decimal, TImportInto>();
             }
-            else if(propertyType.FullName == typeof(float).FullName)
+            else if (propertyType.FullName == typeof(float).FullName)
             {
                 return new NumberCellProcessor<float, TImportInto>();
             }
@@ -281,11 +317,11 @@ namespace IntNovAction.Utils.Importer
 
             bool hasDuplicated = false;
 
-            var columnNames = new Dictionary<string , int>();
+            var columnNames = new Dictionary<string, int>();
 
-            var firstRow = sheet.Row(1);
+            var firstRow = sheet.Row(this._initialRow);
 
-            var column = 1;
+            var column = this._initialColumn;
             var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
             while (column <= lastColumn)
             {
@@ -304,7 +340,7 @@ namespace IntNovAction.Utils.Importer
                             CellValue = header,
                             Row = cell.Address.RowNumber
                         });
-                        if (_duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
+                        if (this._duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
                         {
                             columnNames[header] = column;
                         }
@@ -317,7 +353,7 @@ namespace IntNovAction.Utils.Importer
                 column++;
             }
 
-            if (hasDuplicated && _duplicatedColumStrategy == DuplicatedColumnStrategy.RaiseError)
+            if (hasDuplicated && this._duplicatedColumStrategy == DuplicatedColumnStrategy.RaiseError)
             {
                 return false;
             }

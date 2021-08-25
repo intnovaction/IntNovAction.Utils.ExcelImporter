@@ -12,11 +12,13 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.SampleClasses
         }
 
         public InnerClass Inner { get; set; }
+
+        public int TestInt { get; set; }
     }
 
     public class InnerClass
     {
-        public int Prop1 { get; set; }
+        public int PropInt { get; set; }
 
     }
 }
