@@ -42,7 +42,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = 1;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeNullOrEmpty();
@@ -53,7 +53,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             Cell.Value = "S";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
 
@@ -70,7 +70,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsNull()
         {
             Cell.Value = "";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeEmpty();
@@ -82,7 +82,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsNull()
         {
             Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, NullableDecimalProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeEmpty();

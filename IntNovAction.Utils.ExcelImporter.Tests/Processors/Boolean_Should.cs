@@ -18,6 +18,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         private BooleanCellProcessor<SampleImportInto> Processor;
         private ImportResult<SampleImportInto> ImportResult;
         private SampleImportInto ObjectToBeFilled;
+        private SampleImportInto ObjectToBeRead;
 
         public IXLCell Cell { get; private set; }
 
@@ -35,6 +36,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 
             this.ImportResult = new ImportResult<SampleImportInto>();
             this.ObjectToBeFilled = new SampleImportInto();
+            this.ObjectToBeRead = new SampleImportInto();
             this.Cell = GetXLCell();
 
         }
@@ -53,12 +55,12 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
             var altProcessor = new BooleanCellProcessor<SampleImportInto>(false, options);
 
             Cell.Value = "sep";
-            var cellProcessResult = altProcessor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = altProcessor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
             ObjectToBeFilled.BooleanColumn.Should().Be(true);
             cellProcessResult.Should().BeTrue();
 
             Cell.Value = "nope";
-            cellProcessResult = altProcessor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            cellProcessResult = altProcessor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
             ObjectToBeFilled.BooleanColumn.Should().Be(false);
             cellProcessResult.Should().BeTrue();
 
@@ -67,22 +69,27 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         [TestMethod]
         public void Process_Boolean_True_Value()
         {
+            ObjectToBeRead.BooleanColumn = true;
+            this.Processor.SetValueFromObjectToExcel(ObjectToBeRead, BooleanProperty, Cell);
+            Cell.Value.Should().Be(ObjectToBeRead.BooleanColumn);
 
-            Cell.Value = "yes";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
-
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
             cellProcessResult.Should().BeTrue();
 
             ImportResult.Errors.Should().BeNullOrEmpty();
             ObjectToBeFilled.BooleanColumn.Should().Be(true);
+
+
         }
 
         [TestMethod]
         public void Process_Boolean_False_Value()
         {
+            ObjectToBeRead.BooleanColumn = false;
+            this.Processor.SetValueFromObjectToExcel(ObjectToBeRead, BooleanProperty, Cell);
+            Cell.Value.Should().Be(ObjectToBeRead.BooleanColumn);
 
-            Cell.Value = "no";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
 
@@ -95,7 +102,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             Cell.Value = "AAAAA";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -110,7 +117,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsError()
         {
             Cell.Value = "";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -125,7 +132,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsError()
         {
             Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();

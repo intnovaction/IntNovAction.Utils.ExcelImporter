@@ -1,20 +1,22 @@
 ﻿using ClosedXML.Excel;
 using IntNovAction.Utils.ExcelImporter;
+using IntNovAction.Utils.ExcelImporter.CellProcessors;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace IntNovAction.Utils.ExcelImporter.ExcelGenerator
 {
     internal class Generator<TImportInfo>
     {
-        public Stream GenerateExcel(List<FieldImportInfo<TImportInfo>> _fieldsInfo)
+        public XLWorkbook GenerateExcel(List<FieldImportInfo<TImportInfo>> _fieldsInfo)
         {
             using (var workbook = new XLWorkbook())
             {
-
                 var sheet = workbook.Worksheets.Add(typeof(TImportInfo).Name);
 
-                var row = sheet.Row(1);
+                var row = sheet.Row(Constants.FirstExcelRow);
 
                 for (var i = 0; i < _fieldsInfo.Count; i++)
                 {
@@ -27,12 +29,9 @@ namespace IntNovAction.Utils.ExcelImporter.ExcelGenerator
                     cell.WorksheetColumn().AdjustToContents();
                 }
 
-                sheet.SheetView.FreezeRows(1);
+                sheet.SheetView.FreezeRows(Constants.FirstExcelRow);
 
-                var mStream = new MemoryStream();
-                workbook.SaveAs(mStream);
-                return mStream;
-
+                return workbook;
             }
         }
     }

@@ -18,6 +18,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         private DateCellProcessor<SampleImportInto> Processor;
         private ImportResult<SampleImportInto> ImportResult;
         private SampleImportInto ObjectToBeFilled;
+        private SampleImportInto ObjectToBeRead;
 
         public IXLCell Cell { get; private set; }
 
@@ -33,6 +34,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 
             this.ImportResult = new ImportResult<SampleImportInto>();
             this.ObjectToBeFilled = new SampleImportInto();
+            this.ObjectToBeRead = new SampleImportInto();
             this.Cell = GetXLCell();
 
         }
@@ -41,14 +43,18 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         [TestMethod]
         public void Process_Date_Ok()
         {
+            var date = DateTime.Now;
 
-            Cell.Value = "2018-01-01";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, DateProperty, Cell);
+            ObjectToBeRead.DateColumn = date;
+            this.Processor.SetValueFromObjectToExcel(ObjectToBeRead, DateProperty, Cell);
+            Cell.Value.ToString().Should().Be(ObjectToBeRead.DateColumn.ToString());
+
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, DateProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
 
             ImportResult.Errors.Should().BeNullOrEmpty();
-            ObjectToBeFilled.DateColumn.Should().Be(new DateTime(2018,1,1));
+            ObjectToBeFilled.DateColumn.Date.Should().Be(date.Date);
         }
 
         [TestMethod]
@@ -56,7 +62,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = "2018-33-11";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, DateProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, DateProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -71,7 +77,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             Cell.Value = "S";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, DateProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, DateProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -86,7 +92,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsError()
         {
             Cell.Value = "";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, DateProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, DateProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -101,7 +107,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsError()
         {
             Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, DateProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, DateProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();

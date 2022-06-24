@@ -45,7 +45,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = "yes";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
 
@@ -58,7 +58,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = "no";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
 
@@ -71,7 +71,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             Cell.Value = "AAAAA";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -86,7 +86,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsNull()
         {
             Cell.Value = "";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ObjectToBeFilled.NullableBooleanColumn.Should().Be(null);
@@ -97,7 +97,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsNull()
         {
             Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ObjectToBeFilled.NullableBooleanColumn.Should().Be(null);

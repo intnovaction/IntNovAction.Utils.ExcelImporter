@@ -42,7 +42,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = "Hello";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, StringProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, StringProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeNullOrEmpty();
@@ -54,7 +54,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsNull()
         {
             Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, StringProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, StringProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeEmpty();

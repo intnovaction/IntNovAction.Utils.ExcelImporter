@@ -9,10 +9,14 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
     {
         
 
-        internal abstract bool SetValue(ImportResult<TImportInto> results,
+        internal abstract bool SetValueFromExcelToObject(ImportResult<TImportInto> results,
             object target,
             PropertyInfo property,
             IXLCell cell);
+
+        internal abstract bool SetValueFromObjectToExcel(object objectToRead,
+            PropertyInfo property,
+            IXLCell target);
 
         protected void AddInvalidValueError(ImportResult<TImportInto> results, IXLCell cell)
         {

@@ -6,6 +6,8 @@ using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
 using IntNovAction.Utils.ExcelImporter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System;
 
 namespace IntNovAction.Utils.ExcelImporter.Tests
 {
@@ -238,6 +240,65 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
                 worksheet.Row(1).Cell(4).Value.ToString().Should().Be("Decimal Column");
             }
 
+        }
+
+        [TestMethod]
+        public void Generate_Excel_From_Importer_With_SampleData()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            importer
+                .For(p => p.NullableIntColumn, "Nullable Int Column")
+                .For(p => p.BooleanColumn, "Bool Column")
+                .For(p => p.DateColumn, "Date column")
+                .For(p => p.DecimalColumn, "Decimal Column")
+                .For(p => p.StringColumn, "String Column");
+
+            var sampleData = new List<SampleImportInto>();
+            var sampleDataItem1 = new SampleImportInto()
+            {
+                NullableIntColumn = 25,
+                BooleanColumn = false,
+                DateColumn = DateTime.Now,
+                DecimalColumn = 2.23M,
+                StringColumn = "test 1"
+            };
+            var sampleDataItem2 = new SampleImportInto()
+            {
+                NullableIntColumn = null,
+                BooleanColumn = true,
+                DateColumn = DateTime.Now.AddDays(-5),
+                DecimalColumn = 2.23M,
+                StringColumn = null
+            };
+            sampleData.Add(sampleDataItem1);
+            sampleData.Add(sampleDataItem2);
+
+            using (var excelStream = importer.GenerateExcel(sampleData))
+            {
+                excelStream.Should().NotBeNull();
+
+                var book = new XLWorkbook(excelStream);
+                book.Should().NotBeNull();
+                book.Worksheets.Count().Should().Be(1);
+
+                var worksheet = book.Worksheet(1);
+                worksheet.Name.Should().Be("SampleImportInto");
+
+                worksheet.Rows().Count().Should().Be(3);
+
+                worksheet.Row(2).Cell(1).Value.ToString().Should().Be(sampleDataItem1.NullableIntColumn.ToString());
+                worksheet.Row(2).Cell(2).Value.ToString().Should().Be(sampleDataItem1.BooleanColumn.ToString());
+                worksheet.Row(2).Cell(3).Value.ToString().Should().Be(sampleDataItem1.DateColumn.ToString());
+                worksheet.Row(2).Cell(4).Value.ToString().Should().Be(sampleDataItem1.DecimalColumn.ToString());
+                worksheet.Row(2).Cell(5).Value.ToString().Should().Be(sampleDataItem1.StringColumn.ToString());
+
+                worksheet.Row(3).Cell(1).Value.ToString().Should().Be(sampleDataItem2.NullableIntColumn.ToString());
+                worksheet.Row(3).Cell(2).Value.ToString().Should().Be(sampleDataItem2.BooleanColumn.ToString());
+                worksheet.Row(3).Cell(3).Value.ToString().Should().Be(sampleDataItem2.DateColumn.ToString());
+                worksheet.Row(3).Cell(4).Value.ToString().Should().Be(sampleDataItem2.DecimalColumn.ToString());
+                worksheet.Row(3).Cell(5).Value.ToString().Should().Be(string.Empty);
+            }
         }
 
 

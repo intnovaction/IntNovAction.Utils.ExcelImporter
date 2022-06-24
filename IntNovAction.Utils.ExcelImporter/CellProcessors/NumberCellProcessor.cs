@@ -11,7 +11,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
     {
         
 
-        internal override bool SetValue(ImportResult<TImportInto> results,
+        internal override bool SetValueFromExcelToObject(ImportResult<TImportInto> results,
             object objectToFill,
             PropertyInfo property,
             IXLCell cell)
@@ -31,7 +31,29 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             }
         }
 
+        internal override bool SetValueFromObjectToExcel(object objectToRead,
+            PropertyInfo property,
+            IXLCell cellToFill)
+        {
+            if (property.GetValue(objectToRead) == null)
+            {
+                return false;
+            }
 
-
+            if (int.TryParse(property.GetValue(objectToRead).ToString(), out int resultInt))
+            {
+                cellToFill.SetValue(resultInt);
+                return true;
+            }
+            else if (decimal.TryParse(property.GetValue(objectToRead).ToString(), out decimal resultDecimal))
+            {
+                cellToFill.SetValue(resultDecimal);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

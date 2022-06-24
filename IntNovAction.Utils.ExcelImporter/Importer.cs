@@ -111,7 +111,26 @@ namespace IntNovAction.Utils.ExcelImporter
         {
             var generator = new Generator<TImportInto>();
 
-            return generator.GenerateExcel(this._fieldsInfo);
+            var excel = generator.GenerateExcel(this._fieldsInfo);
+            return CreateExcelFile(excel);
+        }
+
+        /// <summary>
+        /// Generates an excel that can be used to import data.
+        /// The excel is created with the fields configured for the importer
+        /// </summary>
+        /// <param name="sampleData">Sample data used to generate rows in the Excel</param>
+        /// <returns></returns>
+        public Stream GenerateExcel(List<TImportInto> sampleData)
+        {
+            var generator = new Generator<TImportInto>();
+
+            var excel = generator.GenerateExcel(this._fieldsInfo);
+            if (sampleData != null)
+            {
+                AddSampleData(excel, sampleData);
+            }
+            return CreateExcelFile(excel);
         }
 
         /// <summary>
@@ -200,7 +219,7 @@ namespace IntNovAction.Utils.ExcelImporter
 
                         var processor = GetProperPropertyProcessor(property.PropertyType);
 
-                        isRowOk &= processor.SetValue(results, realTarget, property, cell);
+                        isRowOk &= processor.SetValueFromExcelToObject(results, realTarget, property, cell);
                     }
                 }
 
@@ -219,6 +238,40 @@ namespace IntNovAction.Utils.ExcelImporter
             }
 
             return results;
+        }
+
+        private Stream CreateExcelFile(XLWorkbook workbook)
+        {
+            var mStream = new MemoryStream();
+            workbook.SaveAs(mStream);
+            return mStream;
+        }
+
+        internal void AddSampleData(XLWorkbook workbook, List<TImportInto> sampleData)
+        {
+            if (sampleData == null)
+            {
+                return;
+            }
+
+            var sheet = workbook.Worksheets.First();
+
+            for (var i = 0; i < sampleData.Count; i++)
+            {
+                var row = sheet.Row(i + 2);
+
+                for (var j = 0; j < _fieldsInfo.Count; j++)
+                {
+                    var property = _fieldsInfo[j].MemberExpr.Member as PropertyInfo;
+                    if (property != null)
+                    {
+                        var cell = row.Cell(j + 1);
+
+                        var processor = GetProperPropertyProcessor(property.PropertyType);
+                        processor.SetValueFromObjectToExcel(sampleData[i], property, cell);
+                    }
+                }
+            }
         }
 
         private object GetTargetObject(TImportInto target, MemberExpression memberExpr)

@@ -42,7 +42,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             Cell.Value = 1;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
 
             cellProcessResult.Should().BeTrue();
             ImportResult.Errors.Should().BeNullOrEmpty();
@@ -53,7 +53,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             Cell.Value = "S";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -69,7 +69,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsError()
         {
             Cell.Value = "";
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -85,7 +85,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsError()
         {
             Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, FloatProperty, Cell);
 
             cellProcessResult.Should().BeFalse();
             ImportResult.Errors.Should().NotBeNullOrEmpty();

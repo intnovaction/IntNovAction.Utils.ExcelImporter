@@ -15,7 +15,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             IsNullable = nullable;
         }
 
-        internal override bool SetValue(ImportResult<TImportInto> results,
+        internal override bool SetValueFromExcelToObject(ImportResult<TImportInto> results,
             object objectToFill,
             PropertyInfo property,
             IXLCell cell)
@@ -48,7 +48,27 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             }
         }
 
+        internal override bool SetValueFromObjectToExcel(object objectToRead,
+            PropertyInfo property,
+            IXLCell cellToFill)
+        {
+            if (property.GetValue(objectToRead) == null)
+            {
+                if (IsNullable)
+                {
+                    cellToFill.SetValue<string>(null);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
 
+            var value = property.GetValue(objectToRead) as DateTime?;
+            cellToFill.SetValue(value);
 
+            return true;
+        }
     }
 }
