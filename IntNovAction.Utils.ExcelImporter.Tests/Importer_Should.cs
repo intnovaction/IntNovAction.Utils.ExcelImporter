@@ -287,6 +287,11 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
 
                 worksheet.Rows().Count().Should().Be(3);
 
+                worksheet.Row(1).Cell(1).Value.ToString().Should().Be("Nullable Int Column");
+                worksheet.Row(1).Cell(2).Value.ToString().Should().Be("Bool Column");
+                worksheet.Row(1).Cell(3).Value.ToString().Should().Be("Date column");
+                worksheet.Row(1).Cell(4).Value.ToString().Should().Be("Decimal Column");
+
                 worksheet.Row(2).Cell(1).Value.ToString().Should().Be(sampleDataItem1.NullableIntColumn.ToString());
                 worksheet.Row(2).Cell(2).Value.ToString().Should().Be(sampleDataItem1.BooleanColumn.ToString());
                 worksheet.Row(2).Cell(3).Value.ToString().Should().Be(sampleDataItem1.DateColumn.ToString());
