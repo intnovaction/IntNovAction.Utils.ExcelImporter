@@ -25,7 +25,7 @@ class SampleImportInto
 
 
 // Read the excel file 
-using (var stream = File.OpenRead("d:\\ExceñWithData.xlsx"))
+using (var stream = File.OpenRead("d:\\ExcelWithData.xlsx"))
 {
     // Create the typed importer
     var importer = new Importer<SampleImportInto>();
@@ -85,3 +85,13 @@ It also allows to generate an Excel file with the exact format to import the dat
 	}
 
 ```
+
+You can also generate the Excel file template with sample rows
+
+```c#
+    
+    // sampleData contains a List<SampleImportInto>
+	using (var excelStream = importer.GenerateExcel(sampleData))
+    {
+		// Do stuff with the excel
+	}
