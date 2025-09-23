@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -9,10 +9,12 @@
 
   <ItemGroup>
     <None Remove="SampleExcels\SampleExcel.xlsx" />
+    <None Remove="SampleExcels\SampleExcel_DupColumn.xlsx" />
     <None Remove="SampleExcels\~%24SampleExcel.xlsx" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SampleExcels\SampleExcel_DupColumn.xlsx" />
     <EmbeddedResource Include="SampleExcels\SampleExcel.xlsx" />
   </ItemGroup>
 

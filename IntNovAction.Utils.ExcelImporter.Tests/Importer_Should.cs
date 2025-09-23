@@ -117,6 +117,14 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
             return stream;
         }
 
+        public Stream OpenExcelDupColumns()
+        {
+            var stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("IntNovAction.Utils.ExcelImporter.Tests.SampleExcels.SampleExcel_DupColumn.xlsx");
+
+            return stream;
+        }
+
 
         [TestMethod]
         public void Show_Error_When_Columns_Are_Duplicated()
@@ -146,7 +154,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
         {
             var importer = new Importer<SampleImportInto>();
 
-            using (var stream = OpenExcel())
+            using (var stream = OpenExcelDupColumns())
             {
                 var lista = importer
                     .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.TakeFirst)
@@ -169,7 +177,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
         {
             var importer = new Importer<SampleImportInto>();
 
-            using (var stream = OpenExcel())
+            using (var stream = OpenExcelDupColumns())
             {
                 var lista = importer
                     .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.TakeLast)
@@ -415,6 +423,31 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
                     importResult.ImportedItems[0].TestInt.Should().Be(2);
                 }
 
+            }
+        }
+
+        [TestMethod]
+        public void Execute_Custom_For_Should_Invoke_Custom_Action()
+        {
+            // Arrange
+            var importer = new Importer<SampleImportInto>();
+            bool customForCalled = false;
+            
+
+            using (var stream = OpenExcel())
+            {
+                var lista = importer
+                    .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.RaiseError)
+                    .FromExcel(stream)
+                    .SetErrorStrategy(ErrorStrategy.AddElement)
+                    .CustomFor((Dictionary<string, string> rowValues, SampleImportInto destination) =>
+                    {
+                        customForCalled = true;
+                    })
+                    .Import();
+
+                // Assert
+                customForCalled.Should().BeTrue("CustomFor action should be called during import");
             }
         }
     }

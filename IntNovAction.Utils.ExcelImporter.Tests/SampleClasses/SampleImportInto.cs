@@ -38,5 +38,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.SampleClasses
         public bool? NullableBooleanColumn { get; set; }
 
         public int RowIndex { get; set; }
+
+        public string CustomColum { get;  set; }
     }
 }
