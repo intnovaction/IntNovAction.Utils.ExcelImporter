@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace IntNovAction.Utils.Importer
+namespace IntNovAction.Utils.ExcelImporter
 {
     public class ImportResult<TImportInto>
         where TImportInto : class

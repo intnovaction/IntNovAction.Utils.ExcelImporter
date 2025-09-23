@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace IntNovAction.Utils.Importer
+namespace IntNovAction.Utils.ExcelImporter
 {
     [Serializable]
     internal class ExcelImportException : Exception

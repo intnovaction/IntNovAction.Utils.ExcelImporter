@@ -2,8 +2,8 @@
 using ClosedXML.Excel;
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
-using IntNovAction.Utils.Importer;
-using IntNovAction.Utils.Importer.Tests.SampleClasses;
+using IntNovAction.Utils.ExcelImporter;
+using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
@@ -41,7 +41,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
 
             this.Cell.Value = 1;
-            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
             cellProcessResult.Should().BeTrue();
             this.ImportResult.Errors.Should().BeNullOrEmpty();
@@ -52,7 +52,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Letter_AsError()
         {
             this.Cell.Value = "S";
-            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
             cellProcessResult.Should().BeFalse();
             this.ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -68,7 +68,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_EmptyString_AsError()
         {
             this.Cell.Value = "";
-            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
             cellProcessResult.Should().BeFalse();
             this.ImportResult.Errors.Should().NotBeNullOrEmpty();
@@ -84,7 +84,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         public void Process_Null_AsError()
         {
             this.Cell.Value = null;
-            var cellProcessResult = this.Processor.SetValue(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
             cellProcessResult.Should().BeFalse();
             this.ImportResult.Errors.Should().NotBeNullOrEmpty();

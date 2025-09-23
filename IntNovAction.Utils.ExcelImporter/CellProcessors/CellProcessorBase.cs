@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using ClosedXML.Excel;
-using IntNovAction.Utils.Importer;
+using IntNovAction.Utils.ExcelImporter;
 
 namespace IntNovAction.Utils.ExcelImporter.CellProcessors
 {
@@ -9,10 +9,14 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
     {
         
 
-        internal abstract bool SetValue(ImportResult<TImportInto> results,
-            TImportInto objectToFill,
+        internal abstract bool SetValueFromExcelToObject(ImportResult<TImportInto> results,
+            object target,
             PropertyInfo property,
             IXLCell cell);
+
+        internal abstract bool SetValueFromObjectToExcel(object objectToRead,
+            PropertyInfo property,
+            IXLCell target);
 
         protected void AddInvalidValueError(ImportResult<TImportInto> results, IXLCell cell)
         {

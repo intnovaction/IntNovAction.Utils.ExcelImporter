@@ -4,11 +4,10 @@ using System.Reflection;
 using ClosedXML.Excel;
 using FluentAssertions;
 using IntNovAction.Utils.ExcelImporter.Tests.SampleClasses;
-using IntNovAction.Utils.Importer;
+using IntNovAction.Utils.ExcelImporter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.Collections.Generic;
+using System;
 
 namespace IntNovAction.Utils.ExcelImporter.Tests
 {
@@ -118,6 +117,14 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
             return stream;
         }
 
+        public Stream OpenExcelDupColumns()
+        {
+            var stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("IntNovAction.Utils.ExcelImporter.Tests.SampleExcels.SampleExcel_DupColumn.xlsx");
+
+            return stream;
+        }
+
 
         [TestMethod]
         public void Show_Error_When_Columns_Are_Duplicated()
@@ -147,7 +154,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
         {
             var importer = new Importer<SampleImportInto>();
 
-            using (var stream = OpenExcel())
+            using (var stream = OpenExcelDupColumns())
             {
                 var lista = importer
                     .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.TakeFirst)
@@ -170,7 +177,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
         {
             var importer = new Importer<SampleImportInto>();
 
-            using (var stream = OpenExcel())
+            using (var stream = OpenExcelDupColumns())
             {
                 var lista = importer
                     .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.TakeLast)
@@ -243,6 +250,70 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
 
         }
 
+        [TestMethod]
+        public void Generate_Excel_From_Importer_With_SampleData()
+        {
+            var importer = new Importer<SampleImportInto>();
+
+            importer
+                .For(p => p.NullableIntColumn, "Nullable Int Column")
+                .For(p => p.BooleanColumn, "Bool Column")
+                .For(p => p.DateColumn, "Date column")
+                .For(p => p.DecimalColumn, "Decimal Column")
+                .For(p => p.StringColumn, "String Column");
+
+            var sampleData = new List<SampleImportInto>();
+            var sampleDataItem1 = new SampleImportInto()
+            {
+                NullableIntColumn = 25,
+                BooleanColumn = false,
+                DateColumn = DateTime.Now,
+                DecimalColumn = 2.23M,
+                StringColumn = "test 1"
+            };
+            var sampleDataItem2 = new SampleImportInto()
+            {
+                NullableIntColumn = null,
+                BooleanColumn = true,
+                DateColumn = DateTime.Now.AddDays(-5),
+                DecimalColumn = 2.23M,
+                StringColumn = null
+            };
+            sampleData.Add(sampleDataItem1);
+            sampleData.Add(sampleDataItem2);
+
+            using (var excelStream = importer.GenerateExcel(sampleData))
+            {
+                excelStream.Should().NotBeNull();
+
+                var book = new XLWorkbook(excelStream);
+                book.Should().NotBeNull();
+                book.Worksheets.Count().Should().Be(1);
+
+                var worksheet = book.Worksheet(1);
+                worksheet.Name.Should().Be("SampleImportInto");
+
+                worksheet.Rows().Count().Should().Be(3);
+
+                worksheet.Row(1).Cell(1).Value.ToString().Should().Be("Nullable Int Column");
+                worksheet.Row(1).Cell(2).Value.ToString().Should().Be("Bool Column");
+                worksheet.Row(1).Cell(3).Value.ToString().Should().Be("Date column");
+                worksheet.Row(1).Cell(4).Value.ToString().Should().Be("Decimal Column");
+
+                worksheet.Row(2).Cell(1).Value.ToString().Should().Be(sampleDataItem1.NullableIntColumn.ToString());
+                worksheet.Row(2).Cell(2).Value.ToString().Should().Be(sampleDataItem1.BooleanColumn.ToString());
+                worksheet.Row(2).Cell(3).Value.ToString().Should().Be(sampleDataItem1.DateColumn.ToString());
+                worksheet.Row(2).Cell(4).Value.ToString().Should().Be(sampleDataItem1.DecimalColumn.ToString());
+                worksheet.Row(2).Cell(5).Value.ToString().Should().Be(sampleDataItem1.StringColumn.ToString());
+
+                worksheet.Row(3).Cell(1).Value.ToString().Should().Be(sampleDataItem2.NullableIntColumn.ToString());
+                worksheet.Row(3).Cell(2).Value.ToString().Should().Be(sampleDataItem2.BooleanColumn.ToString());
+                worksheet.Row(3).Cell(3).Value.ToString().Should().Be(sampleDataItem2.DateColumn.ToString());
+                worksheet.Row(3).Cell(4).Value.ToString().Should().Be(sampleDataItem2.DecimalColumn.ToString());
+                worksheet.Row(3).Cell(5).Value.ToString().Should().Be(string.Empty);
+            }
+        }
+
 
         [TestMethod]
         public void Import_From_Generated_Excel()
@@ -261,7 +332,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
             {
                 excelStream.Should().NotBeNull();
                 excelBook = new XLWorkbook(excelStream);
-                
+
                 var worksheet = excelBook.Worksheet(1);
 
                 worksheet.Row(2).Cell(1).Value = 1;
@@ -292,19 +363,91 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
 
 
         [TestMethod]
-        public void InnerClass()
+        public void Generate_With_InnerClass()
         {
             var importer = new Importer<ClassWithInnerClass>();
+
+            importer
+                .For(p => p.Inner.PropInt, "Inner Column")
+                .For(p => p.Inner, "Base Column");
+
+            using (var stream = importer.GenerateExcel())
+            {
+                stream.Should().NotBeNull();
+
+                var book = new XLWorkbook(stream);
+                book.Should().NotBeNull();
+                book.Worksheets.Count().Should().Be(1);
+
+                var worksheet = book.Worksheet(1);
+
+                worksheet.Row(1).Cell(1).Value.Should().Be("Inner Column");
+                worksheet.Row(1).Cell(2).Value.Should().Be("Base Column");
+            }
+        }
+
+        [TestMethod]
+        public void Import_From_Generated_Excel_AnidatedClass()
+        {
+            var importer = new Importer<ClassWithInnerClass>();
+
+            importer
+                .For(p => p.Inner.PropInt, "Inner Column")
+                .For(p => p.TestInt, "Base Column");
+
+            XLWorkbook excelBook;
+
+            using (var excelStream = importer.GenerateExcel())
+            {
+                excelStream.Should().NotBeNull();
+                excelBook = new XLWorkbook(excelStream);
+
+                var worksheet = excelBook.Worksheet(1);
+
+                worksheet.Row(2).Cell(1).Value = 1;
+                worksheet.Row(2).Cell(2).Value = 2;
+
+                using (var destinationExcelStream = new MemoryStream())
+                {
+                    excelBook.SaveAs(destinationExcelStream);
+
+                    var importResult = importer.FromExcel(destinationExcelStream)
+                        .Import();
+
+                    importResult.Should().NotBeNull();
+                    importResult.Result.Should().NotBeNull();
+                    importResult.ImportedItems.Should().NotBeNullOrEmpty();
+                    importResult.ImportedItems.Count.Should().Be(1);
+
+                    importResult.ImportedItems[0].Inner.PropInt.Should().Be(1);
+                    importResult.ImportedItems[0].TestInt.Should().Be(2);
+                }
+
+            }
+        }
+
+        [TestMethod]
+        public void Execute_Custom_For_Should_Invoke_Custom_Action()
+        {
+            // Arrange
+            var importer = new Importer<SampleImportInto>();
+            bool customForCalled = false;
+            
 
             using (var stream = OpenExcel())
             {
                 var lista = importer
+                    .SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy.RaiseError)
                     .FromExcel(stream)
+                    .SetErrorStrategy(ErrorStrategy.AddElement)
+                    .CustomFor((Dictionary<string, string> rowValues, SampleImportInto destination) =>
+                    {
+                        customForCalled = true;
+                    })
+                    .Import();
 
-                    .For(p => p.Inner.Prop1, "Int Column")
-                    ;
-
-
+                // Assert
+                customForCalled.Should().BeTrue("CustomFor action should be called during import");
             }
         }
     }

@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
 
-namespace IntNovAction.Utils.Importer
+namespace IntNovAction.Utils.ExcelImporter
 {
     internal class FieldImportInfo<TImportInto>
     {

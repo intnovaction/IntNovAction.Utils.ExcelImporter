@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using IntNovAction.Utils.ExcelImporter.CellProcessors;
 using IntNovAction.Utils.ExcelImporter.ExcelGenerator;
 using System;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace IntNovAction.Utils.Importer
+namespace IntNovAction.Utils.ExcelImporter
 {
     /// <summary>
     /// The importer
@@ -36,14 +37,20 @@ namespace IntNovAction.Utils.Importer
         private ErrorStrategy _errorStrategy = ErrorStrategy.DoNotAddElement;
 
         private readonly List<FieldImportInfo<TImportInto>> _fieldsInfo;
+        private readonly List<Action<Dictionary<string, string>, TImportInto>> _customFunctions;
 
+        private int _initialRow = 1;
+        private int _initialColumn = 1;
         private int _initialRowForData = 2;
+
         private DuplicatedColumnStrategy _duplicatedColumStrategy;
         private Expression<Func<TImportInto, int>> _rowIndexExpression;
+        private int _lastColumn;
 
         public Importer()
         {
             this._fieldsInfo = new List<FieldImportInfo<TImportInto>>();
+            this._customFunctions = new List<Action<Dictionary<string, string>, TImportInto>>();
             this._boolOptions = new BooleanOptions();
         }
 
@@ -90,6 +97,15 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
+        public Importer<TImportInto> SetInitialCoordintates(int headerStartColumn = 1, int headerStartRow = 1)
+        {
+            this._initialRow = headerStartRow;
+            this._initialRowForData = headerStartRow + 1;
+            this._initialColumn = headerStartColumn;
+
+            return this;
+        }
+
         /// <summary>
         /// Generates an excel that can be used to import data.
         /// The excel is created with the fields configured for the importer
@@ -99,7 +115,26 @@ namespace IntNovAction.Utils.Importer
         {
             var generator = new Generator<TImportInto>();
 
-            return generator.GenerateExcel(this._fieldsInfo);
+            var excel = generator.GenerateExcel(this._fieldsInfo);
+            return CreateExcelFile(excel);
+        }
+
+        /// <summary>
+        /// Generates an excel that can be used to import data.
+        /// The excel is created with the fields configured for the importer
+        /// </summary>
+        /// <param name="sampleData">Sample data used to generate rows in the Excel</param>
+        /// <returns></returns>
+        public Stream GenerateExcel(List<TImportInto> sampleData)
+        {
+            var generator = new Generator<TImportInto>();
+
+            var excel = generator.GenerateExcel(this._fieldsInfo);
+            if (sampleData != null)
+            {
+                AddSampleData(excel, sampleData);
+            }
+            return CreateExcelFile(excel);
         }
 
         /// <summary>
@@ -165,45 +200,138 @@ namespace IntNovAction.Utils.Importer
                 return results;
             }
 
-            var canContinue = AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
-            if (!canContinue)
+            var headerResult = AnalyzeHeaders(sheet, this._fieldsInfo, results.Errors);
+            if (!headerResult.IsOk)
             {
                 return results;
             }
 
-            for (int cellRow = _initialRowForData; cellRow <= numdFilas; cellRow++)
+
+            for (int cellRow = this._initialRowForData; cellRow <= numdFilas; cellRow++)
             {
-                var imported = new TImportInto();
+
+
+                var target = new TImportInto();
 
                 bool isRowOk = true;
 
+                // Procesamos los campos
                 foreach (var colImportInfo in this._fieldsInfo.Where(fInfo => fInfo.ColumnNumber != 0))
                 {
                     var property = colImportInfo.MemberExpr.Member as PropertyInfo;
+                    var realTarget = GetTargetObject(target, colImportInfo.MemberExpr);
 
                     if (property != null)
                     {
                         var cell = sheet.Row(cellRow).Cell(colImportInfo.ColumnNumber);
+
                         var processor = GetProperPropertyProcessor(property.PropertyType);
-                        isRowOk &= processor.SetValue(results, imported, property, cell);
+
+                        isRowOk &= processor.SetValueFromExcelToObject(results, realTarget, property, cell);
+                    }
+                }
+
+
+                if (this._customFunctions.Any())
+                {
+                    var dicValores = new Dictionary<string, string>();
+                    // Construir diccionario con el índice relevante según la estrategia de duplicados
+                    var headerNameToColumn = new Dictionary<string, int>();
+                    for (var i = this._initialColumn; i <= this._lastColumn; i++)
+                    {
+                        var headerName = headerResult.HeaderNames[i - this._initialColumn];
+                        if (!headerNameToColumn.ContainsKey(headerName))
+                        {
+                            headerNameToColumn[headerName] = i;
+                        }
+                        else
+                        {
+                            if (this._duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
+                                headerNameToColumn[headerName] = i;
+                            // Si es TakeFirst, no se actualiza
+                            // Si es RaiseError, ya se abortó antes
+                        }
+                    }
+                    foreach (var kvp in headerNameToColumn)
+                    {
+                        dicValores[kvp.Key] = sheet.Row(cellRow).Cell(kvp.Value).GetString();
+                    }
+                    foreach (var customFunc in this._customFunctions)
+                    {
+                        customFunc.Invoke(dicValores, target);
                     }
                 }
 
                 if (this._rowIndexExpression != null)
                 {
-                    var property = Util<TImportInto, int>.GetMemberExpression(this._rowIndexExpression).Member as PropertyInfo; 
+                    var property = Util<TImportInto, int>.GetMemberExpression(this._rowIndexExpression).Member as PropertyInfo;
 
-                    property.SetValue(imported, cellRow);
+                    property.SetValue(target, cellRow);
                 }
 
-                if (isRowOk || _errorStrategy == ErrorStrategy.AddElement)
+                if (isRowOk || this._errorStrategy == ErrorStrategy.AddElement)
                 {
-                    results.ImportedItems.Add(imported);
+                    results.ImportedItems.Add(target);
                 }
 
             }
 
             return results;
+        }
+
+        private Stream CreateExcelFile(XLWorkbook workbook)
+        {
+            var mStream = new MemoryStream();
+            workbook.SaveAs(mStream);
+            return mStream;
+        }
+
+        internal void AddSampleData(XLWorkbook workbook, List<TImportInto> sampleData)
+        {
+            if (sampleData == null)
+            {
+                return;
+            }
+
+            var sheet = workbook.Worksheets.First();
+
+            for (var i = 0; i < sampleData.Count; i++)
+            {
+                var row = sheet.Row(i + 2);
+
+                for (var j = 0; j < _fieldsInfo.Count; j++)
+                {
+                    var property = _fieldsInfo[j].MemberExpr.Member as PropertyInfo;
+                    if (property != null)
+                    {
+                        var cell = row.Cell(j + 1);
+
+                        var processor = GetProperPropertyProcessor(property.PropertyType);
+                        processor.SetValueFromObjectToExcel(sampleData[i], property, cell);
+                    }
+                }
+            }
+        }
+
+        private object GetTargetObject(TImportInto target, MemberExpression memberExpr)
+        {
+            var expressionAsString = memberExpr.ToString();
+            var objectPath = expressionAsString.Substring(expressionAsString.IndexOf(".") + 1).Split('.');
+            if (objectPath.Length == 1)
+            {
+                return target;
+            }
+            else
+            {
+
+                object tempTarget = target;
+                for (var i = 0; i < objectPath.Length - 1; i++)
+                {
+                    PropertyInfo propertyToGet = tempTarget.GetType().GetProperty(objectPath[i]);
+                    tempTarget = propertyToGet.GetValue(tempTarget);
+                }
+                return tempTarget;
+            }
         }
 
         public Importer<TImportInto> SetDuplicatedColumnsStrategy(DuplicatedColumnStrategy duplicatedColumnStrategy)
@@ -239,7 +367,7 @@ namespace IntNovAction.Utils.Importer
             {
                 return new NumberNullableCellProcessor<decimal, TImportInto>();
             }
-            else if(propertyType.FullName == typeof(float).FullName)
+            else if (propertyType.FullName == typeof(float).FullName)
             {
                 return new NumberCellProcessor<float, TImportInto>();
             }
@@ -272,24 +400,34 @@ namespace IntNovAction.Utils.Importer
         }
 
 
+        class HeaderAnalysisResult
+        {
+            public List<string> HeaderNames { get; private set; } = new List<string>();
+            public bool IsOk { get; set; }
+        }
 
-
-        private bool AnalyzeHeaders(IXLWorksheet sheet,
+        private HeaderAnalysisResult AnalyzeHeaders(IXLWorksheet sheet,
             List<FieldImportInfo<TImportInto>> fieldsInfo,
             List<ImportErrorInfo> errors)
         {
+            var result = new HeaderAnalysisResult();
+
 
             bool hasDuplicated = false;
 
-            var columnNames = new Dictionary<string , int>();
+            var columnNames = new Dictionary<string, int>();
 
-            var firstRow = sheet.Row(1);
+            var firstRow = sheet.Row(this._initialRow);
 
-            var column = 1;
-            var lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
-            while (column <= lastColumn)
+            var column = this._initialColumn;
+            this._lastColumn = firstRow.LastCellUsed().Address.ColumnNumber;
+            while (column <= _lastColumn)
             {
+
                 var cell = firstRow.Cell(column);
+
+                result.HeaderNames.Add(cell.GetValue<string>());
+
                 if (cell.TryGetValue<string>(out string header))
                 {
                     if (columnNames.ContainsKey(header))
@@ -304,7 +442,7 @@ namespace IntNovAction.Utils.Importer
                             CellValue = header,
                             Row = cell.Address.RowNumber
                         });
-                        if (_duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
+                        if (this._duplicatedColumStrategy == DuplicatedColumnStrategy.TakeLast)
                         {
                             columnNames[header] = column;
                         }
@@ -317,9 +455,12 @@ namespace IntNovAction.Utils.Importer
                 column++;
             }
 
-            if (hasDuplicated && _duplicatedColumStrategy == DuplicatedColumnStrategy.RaiseError)
+
+
+            if (hasDuplicated && this._duplicatedColumStrategy == DuplicatedColumnStrategy.RaiseError)
             {
-                return false;
+                result.IsOk = false;
+                return result;
             }
 
             foreach (var fieldInfo in fieldsInfo)
@@ -345,7 +486,8 @@ namespace IntNovAction.Utils.Importer
                 }
             }
 
-            return true;
+            result.IsOk = true;
+            return result;
         }
 
         /// <summary>
@@ -365,6 +507,14 @@ namespace IntNovAction.Utils.Importer
             return this;
         }
 
+        
+        internal Importer<TImportInto> CustomFor(
+            Action<Dictionary<string, string>, TImportInto> customFunction)
+        {
+            this._customFunctions.Add(customFunction);
+            return this;
+        }
+
         /// <summary>
         /// Fill the property with the row index
         /// </summary>
@@ -375,5 +525,7 @@ namespace IntNovAction.Utils.Importer
             this._rowIndexExpression = memberAccessor;
             return this;
         }
+
+
     }
 }

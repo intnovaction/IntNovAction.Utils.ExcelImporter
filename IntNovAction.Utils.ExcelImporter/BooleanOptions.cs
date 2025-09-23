@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace IntNovAction.Utils.Importer
+namespace IntNovAction.Utils.ExcelImporter
 {
     internal class BooleanOptions
     {
