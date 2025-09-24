@@ -508,7 +508,7 @@ namespace IntNovAction.Utils.ExcelImporter
         }
 
         
-        internal Importer<TImportInto> CustomFor(
+        public Importer<TImportInto> CustomFor(
             Action<Dictionary<string, string>, TImportInto> customFunction)
         {
             this._customFunctions.Add(customFunction);
