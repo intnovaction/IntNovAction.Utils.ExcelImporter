@@ -71,7 +71,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
             ObjectToBeRead.BooleanColumn = true;
             this.Processor.SetValueFromObjectToExcel(ObjectToBeRead, BooleanProperty, Cell);
-            Cell.Value.Should().Be(ObjectToBeRead.BooleanColumn);
+            Cell.GetValue<bool>().Should().Be(ObjectToBeRead.BooleanColumn);
 
             var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
             cellProcessResult.Should().BeTrue();
@@ -87,7 +87,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         {
             ObjectToBeRead.BooleanColumn = false;
             this.Processor.SetValueFromObjectToExcel(ObjectToBeRead, BooleanProperty, Cell);
-            Cell.Value.Should().Be(ObjectToBeRead.BooleanColumn);
+            Cell.GetValue<bool>().Should().Be(ObjectToBeRead.BooleanColumn);
 
             var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
@@ -131,7 +131,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         [TestMethod]
         public void Process_Null_AsError()
         {
-            Cell.Value = null;
+            Cell.Clear();
             var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeFalse();

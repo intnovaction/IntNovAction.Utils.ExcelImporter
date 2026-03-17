@@ -36,7 +36,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
                 return true;
             }
 
-            cellToFill.SetValue<string>(property.GetValue(objectToRead).ToString());
+            cellToFill.SetValue(property.GetValue(objectToRead)?.ToString());
             return true;
         }
     }

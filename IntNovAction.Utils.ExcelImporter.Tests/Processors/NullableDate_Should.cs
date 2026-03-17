@@ -38,7 +38,20 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
 
 
         [TestMethod]
-        public void Process_Date_Ok()
+        public void Process_Date_FromDate_Ok()
+        {
+
+            this.Cell.Value = new DateTime(2018, 1, 1   );
+            var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
+
+            cellProcessResult.Should().BeTrue();
+
+            this.ImportResult.Errors.Should().BeNullOrEmpty();
+            this.ObjectToBeFilled.NullableDateColumn.Should().Be(new DateTime(2018, 1, 1));
+        }
+
+        [TestMethod]
+        public void Process_Date_String_Ok()
         {
 
             this.Cell.Value = "2018-01-01";
@@ -97,7 +110,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         [TestMethod]
         public void Process_Null_AsNull()
         {
-            this.Cell.Value = null;
+            this.Cell.Clear();
             var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.NullableDateProperty, this.Cell);
 
             cellProcessResult.Should().BeTrue();

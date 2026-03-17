@@ -96,7 +96,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         [TestMethod]
         public void Process_Null_AsNull()
         {
-            Cell.Value = null;
+            Cell.Clear();
             var cellProcessResult = this.Processor.SetValueFromExcelToObject(ImportResult, ObjectToBeFilled, BooleanProperty, Cell);
 
             cellProcessResult.Should().BeTrue();

@@ -301,13 +301,13 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
                 worksheet.Row(1).Cell(4).Value.ToString().Should().Be("Decimal Column");
 
                 worksheet.Row(2).Cell(1).Value.ToString().Should().Be(sampleDataItem1.NullableIntColumn.ToString());
-                worksheet.Row(2).Cell(2).Value.ToString().Should().Be(sampleDataItem1.BooleanColumn.ToString());
+                worksheet.Row(2).Cell(2).Value.ToString().Should().BeEquivalentTo(sampleDataItem1.BooleanColumn.ToString());
                 worksheet.Row(2).Cell(3).Value.ToString().Should().Be(sampleDataItem1.DateColumn.ToString());
                 worksheet.Row(2).Cell(4).Value.ToString().Should().Be(sampleDataItem1.DecimalColumn.ToString());
                 worksheet.Row(2).Cell(5).Value.ToString().Should().Be(sampleDataItem1.StringColumn.ToString());
 
                 worksheet.Row(3).Cell(1).Value.ToString().Should().Be(sampleDataItem2.NullableIntColumn.ToString());
-                worksheet.Row(3).Cell(2).Value.ToString().Should().Be(sampleDataItem2.BooleanColumn.ToString());
+                worksheet.Row(3).Cell(2).Value.ToString().Should().BeEquivalentTo(sampleDataItem2.BooleanColumn.ToString());
                 worksheet.Row(3).Cell(3).Value.ToString().Should().Be(sampleDataItem2.DateColumn.ToString());
                 worksheet.Row(3).Cell(4).Value.ToString().Should().Be(sampleDataItem2.DecimalColumn.ToString());
                 worksheet.Row(3).Cell(5).Value.ToString().Should().Be(string.Empty);
@@ -381,8 +381,8 @@ namespace IntNovAction.Utils.ExcelImporter.Tests
 
                 var worksheet = book.Worksheet(1);
 
-                worksheet.Row(1).Cell(1).Value.Should().Be("Inner Column");
-                worksheet.Row(1).Cell(2).Value.Should().Be("Base Column");
+                worksheet.Row(1).Cell(1).GetValue<string>().Should().Be("Inner Column");
+                worksheet.Row(1).Cell(2).GetValue<string>().Should().Be("Base Column");
             }
         }
 

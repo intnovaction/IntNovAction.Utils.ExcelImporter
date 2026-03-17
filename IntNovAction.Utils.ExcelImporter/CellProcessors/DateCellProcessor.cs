@@ -33,13 +33,27 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
                     base.AddInvalidValueError(results, cell);
                     return false;
                 }
-                
+
             }
 
             if (cell.TryGetValue(out DateTime valor))
             {
                 property.SetValue(objectToFill, valor);
                 return true;
+            }
+
+            else if (!string.IsNullOrEmpty(cell.GetValue<string>()))
+            {
+                if (DateTime.TryParse(cell.GetValue<string>(), out DateTime parsedValue))
+                {
+                    property.SetValue(objectToFill, parsedValue);
+                    return true;
+                }
+                else
+                {
+                    base.AddInvalidValueError(results, cell);
+                    return false;
+                }
             }
             else
             {
@@ -56,7 +70,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
             {
                 if (IsNullable)
                 {
-                    cellToFill.SetValue<string>(null);
+                    cellToFill.SetValue((string)null);
                     return true;
                 }
                 else

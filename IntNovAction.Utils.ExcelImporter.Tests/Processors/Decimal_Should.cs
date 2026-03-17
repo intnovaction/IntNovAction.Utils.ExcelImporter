@@ -83,7 +83,7 @@ namespace IntNovAction.Utils.ExcelImporter.Tests.Processors
         [TestMethod]
         public void Process_Null_AsError()
         {
-            this.Cell.Value = null;
+            this.Cell.Clear();
             var cellProcessResult = this.Processor.SetValueFromExcelToObject(this.ImportResult, this.ObjectToBeFilled, this.DecimalProperty, this.Cell);
 
             cellProcessResult.Should().BeFalse();

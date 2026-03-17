@@ -59,11 +59,11 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
 
         }
 
-        internal override bool SetValueFromObjectToExcel(object objectToRead,
-            PropertyInfo property,
-            IXLCell cellToFill)
+        internal override bool SetValueFromObjectToExcel(object objectToRead,PropertyInfo property, IXLCell cellToFill)
         {
-            if (property.GetValue(objectToRead) == null)
+            var propertyValue = property.GetValue(objectToRead);
+
+            if (propertyValue == null)
             {
                 if (IsNullable)
                 {
@@ -75,7 +75,7 @@ namespace IntNovAction.Utils.ExcelImporter.CellProcessors
                 }
             }
 
-            var value = property.GetValue(objectToRead) as bool?;
+            var value = (bool)propertyValue;
 
             cellToFill.SetValue(value);
 
